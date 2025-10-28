@@ -1,4 +1,4 @@
 package oplossing;
 
-public class LineairfrequencyTreap<E extends Comparable<E>> extends ZoekBoom<E>{
+public class LineairFrequencyTreap<E extends Comparable<E>> extends ZoekBoom<E>{
 }
