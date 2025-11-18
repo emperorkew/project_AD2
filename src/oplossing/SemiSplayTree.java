@@ -1,4 +1,4 @@
 package oplossing;
 
-public class SemiSplayTree<E extends Comparable<E>> extends ZoekBoom<E>{
+public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemented<E> {
 }

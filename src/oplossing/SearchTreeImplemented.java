@@ -6,12 +6,12 @@ import opgave.SearchTree;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ZoekBoom<E extends Comparable<E>> implements SearchTree<E> {
+public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTree<E> {
 
     private int size;
     private Top<E> root;
 
-    public ZoekBoom() {
+    public SearchTreeImplemented() {
         this.size = 0;
         this.root = null;
     }

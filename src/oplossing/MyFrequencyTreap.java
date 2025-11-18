@@ -1,4 +1,4 @@
 package oplossing;
 
-public class MyFrequencyTreap<E extends Comparable<E>> extends ZoekBoom<E>{
+public class MyFrequencyTreap<E extends Comparable<E>> extends SearchTreeImplemented<E> {
 }

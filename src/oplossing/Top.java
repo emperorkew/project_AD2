@@ -4,7 +4,7 @@ import opgave.Node;
 
 public class Top<E extends Comparable<E>> implements Node<E> {
 
-    private E value;
+    private final E value;
     private Top<E> left;
     private Top<E> right;
 
