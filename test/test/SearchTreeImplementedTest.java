@@ -363,4 +363,5 @@ public class SearchTreeImplementedTest {
         assertNull(tree.root());
         assertTrue(tree.values().isEmpty());
     }
+
 }
