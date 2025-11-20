@@ -83,34 +83,4 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
         return false;
     }
-
-    /**
-     * Bubble up the last node in path if its priority exceeds its parent's.
-     */
-    private void bubbleUp(List<PriorityTop<E>> path) {
-        for (int i = path.size() - 1; i > 0; i--) {
-            PriorityTop<E> node = path.get(i);
-            PriorityTop<E> parent = path.get(i - 1);
-
-            if (node.getPriority() <= parent.getPriority()) break;
-
-            // Rotate node up
-            PriorityTop<E> grandparent = (i > 1) ? path.get(i - 2) : null;
-            boolean isLeftChild = parent.getLeft() == node;
-
-            PriorityTop<E> newSubtreeRoot = isLeftChild ? rotateRight(parent) : rotateLeft(parent);
-
-            // Update grandparent or root
-            if (grandparent == null) {
-                root = newSubtreeRoot;
-            } else if (grandparent.getLeft() == parent) {
-                grandparent.setLeft(newSubtreeRoot);
-            } else {
-                grandparent.setRight(newSubtreeRoot);
-            }
-
-            // Update path for next iteration
-            path.set(i - 1, newSubtreeRoot);
-        }
-    }
 }

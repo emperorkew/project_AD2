@@ -42,33 +42,70 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     public boolean add(E o) {
         if (o == null) return false;
 
-        int oldSize = size;
-        root = addRecursive(root, o, ThreadLocalRandom.current().nextLong());
-        return size > oldSize;
+        long priority = ThreadLocalRandom.current().nextLong();
+
+        if (root == null) {
+            root = new PriorityTop<>(o, priority);
+            size++;
+            return true;
+        }
+
+        // Track path for bubble-up (capacity 32 covers trees up to ~4B nodes)
+        List<PriorityTop<E>> path = new ArrayList<>(32);
+        PriorityTop<E> current = root;
+
+        // Find insertion point
+        while (current != null) {
+            int cmp = o.compareTo(current.getValue());
+            if (cmp == 0) return false; // Already exists
+
+            path.add(current);
+            current = (cmp < 0) ? current.getLeft() : current.getRight();
+        }
+
+        // Insert new node
+        PriorityTop<E> newNode = new PriorityTop<>(o, priority);
+        PriorityTop<E> parent = path.get(path.size() - 1);
+        if (o.compareTo(parent.getValue()) < 0) {
+            parent.setLeft(newNode);
+        } else {
+            parent.setRight(newNode);
+        }
+        path.add(newNode);
+        size++;
+
+        // Bubble up to maintain heap property
+        bubbleUp(path);
+        return true;
     }
 
-    private PriorityTop<E> addRecursive(PriorityTop<E> node, E value, long priority) {
-        if (node == null) {
-            size++;
-            return new PriorityTop<>(value, priority);
-        }
+    /**
+     * Bubble up the last node in path if its priority exceeds its parent's.
+     */
+    protected void bubbleUp(List<PriorityTop<E>> path) {
+        for (int i = path.size() - 1; i > 0; i--) {
+            PriorityTop<E> node = path.get(i);
+            PriorityTop<E> parent = path.get(i - 1);
 
-        int cmp = value.compareTo(node.getValue());
-        if (cmp == 0) return node;
+            if (node.getPriority() <= parent.getPriority()) break;
 
-        if (cmp < 0) {
-            node.setLeft(addRecursive(node.getLeft(), value, priority));
-            if (node.getLeft().getPriority() > node.getPriority()) {
-                node = rotateRight(node);
+            // Rotate node up
+            PriorityTop<E> grandparent = (i > 1) ? path.get(i - 2) : null;
+            boolean isLeftChild = parent.getLeft() == node;
+
+            PriorityTop<E> newSubtreeRoot = isLeftChild ? rotateRight(parent) : rotateLeft(parent);
+
+            // Update grandparent or root
+            if (grandparent == null) {
+                root = newSubtreeRoot;
+            } else if (grandparent.getLeft() == parent) {
+                grandparent.setLeft(newSubtreeRoot);
+            } else {
+                grandparent.setRight(newSubtreeRoot);
             }
-        } else {
-            node.setRight(addRecursive(node.getRight(), value, priority));
-            if (node.getRight().getPriority() > node.getPriority()) {
-                node = rotateLeft(node);
-            }
-        }
 
-        return node;
+            path.set(i - 1, newSubtreeRoot);
+        }
     }
 
     protected PriorityTop<E> rotateLeft(PriorityTop<E> node) {
@@ -89,46 +126,73 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     public boolean remove(E e) {
         if (e == null || root == null) return false;
 
-        int oldSize = size;
-        root = removeRecursive(root, e);
-        return size < oldSize;
-    }
+        // Find node and its parent
+        PriorityTop<E> parent = null;
+        PriorityTop<E> current = root;
+        boolean isLeftChild = false;
 
-    private PriorityTop<E> removeRecursive(PriorityTop<E> node, E value) {
-        if (node == null) return null;
+        while (current != null) {
+            int cmp = e.compareTo(current.getValue());
+            if (cmp == 0) break;
 
-        int cmp = value.compareTo(node.getValue());
-
-        if (cmp < 0) {
-            node.setLeft(removeRecursive(node.getLeft(), value));
-        } else if (cmp > 0) {
-            node.setRight(removeRecursive(node.getRight(), value));
-        } else {
-            size--;
-            node = rotateDown(node);
+            parent = current;
+            if (cmp < 0) {
+                current = current.getLeft();
+                isLeftChild = true;
+            } else {
+                current = current.getRight();
+                isLeftChild = false;
+            }
         }
 
-        return node;
-    }
+        if (current == null) return false;
 
-    private PriorityTop<E> rotateDown(PriorityTop<E> node) {
-        PriorityTop<E> l = node.getLeft();
-        PriorityTop<E> r = node.getRight();
+        // Rotate down iteratively until node is a leaf
+        while (current.getLeft() != null || current.getRight() != null) {
+            PriorityTop<E> l = current.getLeft();
+            PriorityTop<E> r = current.getRight();
 
-        if (l == null && r == null) return null;
+            boolean goRight = (r == null) || (l != null && l.getPriority() > r.getPriority());
+            PriorityTop<E> newSubtreeRoot;
 
-        // Determine rotation direction: rotate toward higher priority child
-        boolean rotateRight = (r == null) || (l != null && l.getPriority() > r.getPriority());
-
-        if (rotateRight) {
-            PriorityTop<E> newRoot = rotateRight(node);
-            newRoot.setRight(rotateDown(node));
-            return newRoot;
-        } else {
-            PriorityTop<E> newRoot = rotateLeft(node);
-            newRoot.setLeft(rotateDown(node));
-            return newRoot;
+            if (goRight) {
+                newSubtreeRoot = rotateRight(current);
+                // Update parent link
+                if (parent == null) {
+                    root = newSubtreeRoot;
+                } else if (isLeftChild) {
+                    parent.setLeft(newSubtreeRoot);
+                } else {
+                    parent.setRight(newSubtreeRoot);
+                }
+                parent = newSubtreeRoot;
+                isLeftChild = false; // current is now right child of newSubtreeRoot
+            } else {
+                newSubtreeRoot = rotateLeft(current);
+                // Update parent link
+                if (parent == null) {
+                    root = newSubtreeRoot;
+                } else if (isLeftChild) {
+                    parent.setLeft(newSubtreeRoot);
+                } else {
+                    parent.setRight(newSubtreeRoot);
+                }
+                parent = newSubtreeRoot;
+                isLeftChild = true; // current is now left child of newSubtreeRoot
+            }
         }
+
+        // Remove leaf node
+        if (parent == null) {
+            root = null;
+        } else if (isLeftChild) {
+            parent.setLeft(null);
+        } else {
+            parent.setRight(null);
+        }
+
+        size--;
+        return true;
     }
 
     @Override
@@ -139,14 +203,32 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     @Override
     public List<E> values() {
         List<E> result = new ArrayList<>(size);
-        inOrderTraversal(root, result);
-        return result;
-    }
+        // Iterative in-order traversal using Morris-like approach with explicit stack
+        PriorityTop<E> current = root;
+        PriorityTop<E>[] stack = (PriorityTop<E>[]) new PriorityTop[32];
+        int top = -1;
 
-    private void inOrderTraversal(PriorityTop<E> node, List<E> result) {
-        if (node == null) return;
-        inOrderTraversal(node.getLeft(), result);
-        result.add(node.getValue());
-        inOrderTraversal(node.getRight(), result);
+        while (current != null || top >= 0) {
+            // Go to leftmost node
+            while (current != null) {
+                if (++top >= stack.length) {
+                    // Resize stack if needed (rare for balanced trees)
+                    PriorityTop<E>[] newStack = (PriorityTop<E>[]) new PriorityTop[stack.length * 2];
+                    System.arraycopy(stack, 0, newStack, 0, stack.length);
+                    stack = newStack;
+                }
+                stack[top] = current;
+                current = current.getLeft();
+            }
+
+            // Process node
+            current = stack[top--];
+            result.add(current.getValue());
+
+            // Move to right subtree
+            current = current.getRight();
+        }
+
+        return result;
     }
 }
