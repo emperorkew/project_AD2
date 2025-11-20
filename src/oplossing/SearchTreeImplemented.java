@@ -157,14 +157,25 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
     @Override
     public List<E> values() {
         List<E> result = new ArrayList<>(size);
-        inOrderTraversal(root, result);
-        return result;
-    }
+        // Iterative in-order traversal to save O(h) stack space
+        Top<E> current = root;
+        Top<E>[] stack = (Top<E>[]) new Top[32];
+        int top = -1;
 
-    private void inOrderTraversal(Top<E> node, List<E> result) {
-        if (node == null) return;
-        inOrderTraversal(node.getLeft(), result);
-        result.add(node.getValue());
-        inOrderTraversal(node.getRight(), result);
+        while (current != null || top >= 0) {
+            while (current != null) {
+                if (++top >= stack.length) {
+                    Top<E>[] newStack = (Top<E>[]) new Top[stack.length * 2];
+                    System.arraycopy(stack, 0, newStack, 0, stack.length);
+                    stack = newStack;
+                }
+                stack[top] = current;
+                current = current.getLeft();
+            }
+            current = stack[top--];
+            result.add(current.getValue());
+            current = current.getRight();
+        }
+        return result;
     }
 }
