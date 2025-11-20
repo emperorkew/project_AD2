@@ -101,28 +101,24 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         }
 
         // Build path while searching - single traversal
-        List<Top<E>> path = new ArrayList<>();
+        // Initial capacity of 32 covers trees up to ~4 billion nodes
+        List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
-        boolean found = false;
 
         while (current != null) {
             path.add(current);
             int cmp = o.compareTo(current.getValue());
 
             if (cmp == 0) {
-                found = true;
-                break;
-            } else if (cmp < 0) {
-                current = (Top<E>) current.getLeft();
-            } else {
-                current = (Top<E>) current.getRight();
+                semiSplayPath(path);
+                return true;
             }
+            current = (cmp < 0) ? (Top<E>) current.getLeft() : (Top<E>) current.getRight();
         }
 
-        // Splay using the path we already built
+        // Element not found, splay to last accessed node
         semiSplayPath(path);
-
-        return found;
+        return false;
     }
 
     @Override
@@ -138,7 +134,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         }
 
         // Build path while adding - single traversal
-        List<Top<E>> path = new ArrayList<>();
+        List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
 
         while (true) {
@@ -149,8 +145,11 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
                 // Element exists, splay to it and return false
                 semiSplayPath(path);
                 return false;
-            } else if (cmp < 0) {
-                if (current.getLeft() == null) {
+            }
+
+            if (cmp < 0) {
+                Top<E> left = (Top<E>) current.getLeft();
+                if (left == null) {
                     Top<E> newNode = new Top<>(o);
                     current.setLeft(newNode);
                     path.add(newNode);
@@ -158,9 +157,10 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
                     semiSplayPath(path);
                     return true;
                 }
-                current = (Top<E>) current.getLeft();
+                current = left;
             } else {
-                if (current.getRight() == null) {
+                Top<E> right = (Top<E>) current.getRight();
+                if (right == null) {
                     Top<E> newNode = new Top<>(o);
                     current.setRight(newNode);
                     path.add(newNode);
@@ -168,7 +168,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
                     semiSplayPath(path);
                     return true;
                 }
-                current = (Top<E>) current.getRight();
+                current = right;
             }
         }
     }
@@ -180,7 +180,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         }
 
         // Build path while finding the node - single traversal
-        List<Top<E>> path = new ArrayList<>();
+        List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
         Top<E> parent = null;
         boolean isLeftChild = false;
@@ -210,7 +210,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
             return false;
         }
 
-        // Remove the node and get replacement
+        // Remove the node and get replacement (using predecessor)
         Top<E> replacement = deleteNode(current);
 
         // Update parent link
@@ -224,7 +224,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
         decrementSize();
 
-        // Splay to parent (or replacement if it exists)
+        // Splay to parent
         if (!path.isEmpty()) {
             semiSplayPath(path);
         }
