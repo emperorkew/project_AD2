@@ -13,8 +13,8 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
     public boolean search(E o) {
         if (o == null || root == null) return false;
 
-        // Track path for bubble-up after priority increase
-        List<PriorityTop<E>> path = new ArrayList<>();
+        // Track path for bubble-up after priority increase (capacity 32 covers ~4B nodes)
+        List<PriorityTop<E>> path = new ArrayList<>(32);
         PriorityTop<E> current = root;
 
         while (current != null) {
@@ -43,8 +43,8 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
             return true;
         }
 
-        // Track path for bubble-up
-        List<PriorityTop<E>> path = new ArrayList<>();
+        // Track path for bubble-up (capacity 32 covers ~4B nodes)
+        List<PriorityTop<E>> path = new ArrayList<>(32);
         PriorityTop<E> current = root;
 
         while (current != null) {

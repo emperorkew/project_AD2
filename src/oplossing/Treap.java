@@ -5,18 +5,15 @@ import opgave.PrioritySearchTree;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     protected int size;
     protected PriorityTop<E> root;
-    private final Random random;
 
     public Treap() {
         this.size = 0;
-        this.root = null;
-        this.random = new Random();
     }
 
     @Override
@@ -46,7 +43,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
         if (o == null) return false;
 
         int oldSize = size;
-        root = addRecursive(root, o, random.nextLong());
+        root = addRecursive(root, o, ThreadLocalRandom.current().nextLong());
         return size > oldSize;
     }
 
