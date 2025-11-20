@@ -53,6 +53,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
         // Track path for bubble-up (capacity 32 covers trees up to ~4B nodes)
         List<PriorityTop<E>> path = new ArrayList<>(32);
         PriorityTop<E> current = root;
+        boolean insertLeft = false;
 
         // Find insertion point
         while (current != null) {
@@ -60,13 +61,14 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             if (cmp == 0) return false; // Already exists
 
             path.add(current);
-            current = (cmp < 0) ? current.getLeft() : current.getRight();
+            insertLeft = cmp < 0;
+            current = insertLeft ? current.getLeft() : current.getRight();
         }
 
         // Insert new node
         PriorityTop<E> newNode = new PriorityTop<>(o, priority);
         PriorityTop<E> parent = path.get(path.size() - 1);
-        if (o.compareTo(parent.getValue()) < 0) {
+        if (insertLeft) {
             parent.setLeft(newNode);
         } else {
             parent.setRight(newNode);

@@ -166,10 +166,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         }
 
         decrementSize();
-
-        if (!path.isEmpty()) {
-            semiSplayPath(path);
-        }
+        semiSplayPath(path);
 
         return true;
     }
