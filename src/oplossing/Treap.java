@@ -116,18 +116,11 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
         PriorityTop<E> r = node.getRight();
 
         if (l == null && r == null) return null;
-        if (l == null) {
-            PriorityTop<E> newRoot = rotateLeft(node);
-            newRoot.setLeft(rotateDown(node));
-            return newRoot;
-        }
-        if (r == null) {
-            PriorityTop<E> newRoot = rotateRight(node);
-            newRoot.setRight(rotateDown(node));
-            return newRoot;
-        }
 
-        if (l.getPriority() > r.getPriority()) {
+        // Determine rotation direction: rotate toward higher priority child
+        boolean rotateRight = (r == null) || (l != null && l.getPriority() > r.getPriority());
+
+        if (rotateRight) {
             PriorityTop<E> newRoot = rotateRight(node);
             newRoot.setRight(rotateDown(node));
             return newRoot;
