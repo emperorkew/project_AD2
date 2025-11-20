@@ -93,7 +93,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             PriorityTop<E> grandparent = (i > 1) ? path.get(i - 2) : null;
             boolean isLeftChild = parent.getLeft() == node;
 
-            PriorityTop<E> newSubtreeRoot = isLeftChild ? rotateRight(parent) : rotateLeft(parent);
+            PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
 
             // Update grandparent or root
             if (grandparent == null) {
@@ -106,20 +106,6 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
             path.set(i - 1, newSubtreeRoot);
         }
-    }
-
-    protected PriorityTop<E> rotateLeft(PriorityTop<E> node) {
-        PriorityTop<E> r = node.getRight();
-        node.setRight(r.getLeft());
-        r.setLeft(node);
-        return r;
-    }
-
-    protected PriorityTop<E> rotateRight(PriorityTop<E> node) {
-        PriorityTop<E> l = node.getLeft();
-        node.setLeft(l.getRight());
-        l.setRight(node);
-        return l;
     }
 
     @Override
@@ -156,7 +142,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             PriorityTop<E> newSubtreeRoot;
 
             if (goRight) {
-                newSubtreeRoot = rotateRight(current);
+                newSubtreeRoot = current.rotateRight();
                 // Update parent link
                 if (parent == null) {
                     root = newSubtreeRoot;
@@ -168,7 +154,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
                 parent = newSubtreeRoot;
                 isLeftChild = false; // current is now right child of newSubtreeRoot
             } else {
-                newSubtreeRoot = rotateLeft(current);
+                newSubtreeRoot = current.rotateLeft();
                 // Update parent link
                 if (parent == null) {
                     root = newSubtreeRoot;

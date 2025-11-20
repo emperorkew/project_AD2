@@ -37,4 +37,14 @@ public class PriorityTop<E extends Comparable<E>> extends Top<E> implements Prio
     public void setRight(PriorityTop<E> right) {
         super.setRight(right);
     }
+
+    @Override
+    public PriorityTop<E> rotateLeft() {
+        return (PriorityTop<E>) super.rotateLeft();
+    }
+
+    @Override
+    public PriorityTop<E> rotateRight() {
+        return (PriorityTop<E>) super.rotateRight();
+    }
 }

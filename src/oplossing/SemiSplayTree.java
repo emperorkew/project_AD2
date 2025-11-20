@@ -9,20 +9,6 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         super();
     }
 
-    private Top<E> rotateRight(Top<E> node) {
-        Top<E> l = node.getLeft();
-        node.setLeft(l.getRight());
-        l.setRight(node);
-        return l;
-    }
-
-    private Top<E> rotateLeft(Top<E> node) {
-        Top<E> r = node.getRight();
-        node.setRight(r.getLeft());
-        r.setLeft(node);
-        return r;
-    }
-
     private void semiSplayPath(List<Top<E>> path) {
         if (path.size() < 3) return;
 
@@ -55,15 +41,15 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
         if (parentIsLeft == childIsLeft) {
             // Zig-zig: ONE rotation at grandparent
-            return parentIsLeft ? rotateRight(grandparent) : rotateLeft(grandparent);
+            return parentIsLeft ? grandparent.rotateRight() : grandparent.rotateLeft();
         } else {
             // Zig-zag: TWO rotations
             if (parentIsLeft) {
-                grandparent.setLeft(rotateLeft(parent));
-                return rotateRight(grandparent);
+                grandparent.setLeft(parent.rotateLeft());
+                return grandparent.rotateRight();
             } else {
-                grandparent.setRight(rotateRight(parent));
-                return rotateLeft(grandparent);
+                grandparent.setRight(parent.rotateRight());
+                return grandparent.rotateLeft();
             }
         }
     }

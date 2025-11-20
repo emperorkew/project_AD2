@@ -34,4 +34,18 @@ public class Top<E extends Comparable<E>> implements Node<E> {
     public void setRight(Top<E> right) {
         this.right = right;
     }
+
+    public Top<E> rotateLeft() {
+        Top<E> r = this.right;
+        this.right = r.left;
+        r.left = this;
+        return r;
+    }
+
+    public Top<E> rotateRight() {
+        Top<E> l = this.left;
+        this.left = l.right;
+        l.right = this;
+        return l;
+    }
 }
