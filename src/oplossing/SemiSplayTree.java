@@ -229,6 +229,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
     /**
      * Delete a node and return its replacement.
+     * Uses the largest key from the left subtree (inorder predecessor) as replacement.
      */
     private Top<E> deleteNode(Top<E> node) {
         if (node.getLeft() == null) {
@@ -237,26 +238,27 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
             return (Top<E>) node.getLeft();
         }
 
-        // Two children: find and remove inorder successor
-        Top<E> successorParent = node;
-        Top<E> successor = (Top<E>) node.getRight();
+        // Two children: find and remove inorder predecessor (largest in left subtree)
+        Top<E> predecessorParent = node;
+        Top<E> predecessor = (Top<E>) node.getLeft();
 
-        while (successor.getLeft() != null) {
-            successorParent = successor;
-            successor = (Top<E>) successor.getLeft();
+        while (predecessor.getRight() != null) {
+            predecessorParent = predecessor;
+            predecessor = (Top<E>) predecessor.getRight();
         }
 
-        // Remove successor from its current position
-        if (successorParent == node) {
-            successorParent.setRight((Top<E>) successor.getRight());
+        // Remove predecessor from its current position and set up replacement
+        if (predecessorParent == node) {
+            // Predecessor is direct left child of node
+            // predecessor.left stays as is (it becomes the new left subtree)
+            predecessor.setRight((Top<E>) node.getRight());
         } else {
-            successorParent.setLeft((Top<E>) successor.getRight());
+            // Predecessor is deeper in the left subtree
+            predecessorParent.setRight((Top<E>) predecessor.getLeft());
+            predecessor.setLeft((Top<E>) node.getLeft());
+            predecessor.setRight((Top<E>) node.getRight());
         }
 
-        // Replace node with successor
-        successor.setLeft((Top<E>) node.getLeft());
-        successor.setRight((Top<E>) node.getRight());
-
-        return successor;
+        return predecessor;
     }
 }
