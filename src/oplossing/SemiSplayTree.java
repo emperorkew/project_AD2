@@ -11,12 +11,6 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
     /**
      * Rotate the subtree rooted at node to the right.
-     *
-     *       node              left
-     *       /  \              /  \
-     *     left  C    ->      A   node
-     *     /  \                   /  \
-     *    A    B                 B    C
      */
     private Top<E> rotateRight(Top<E> node) {
         Top<E> left = (Top<E>) node.getLeft();
@@ -30,12 +24,6 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
     /**
      * Rotate the subtree rooted at node to the left.
-     *
-     *     node                right
-     *     /  \                /  \
-     *    A   right    ->    node  C
-     *        /  \           /  \
-     *       B    C         A    B
      */
     private Top<E> rotateLeft(Top<E> node) {
         Top<E> right = (Top<E>) node.getRight();
@@ -48,47 +36,24 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
     }
 
     /**
-     * Perform semi-splay operation on the path to the given value.
-     * Semi-splaying moves the accessed node closer to the root by performing
-     * rotations on every other level of the path.
+     * Perform semi-splay operation on the given path.
+     * The path should be ordered from root to the accessed node.
      */
-    private void semiSplay(E value) {
-        if (root == null) {
+    private void semiSplayPath(List<Top<E>> path) {
+        if (path.size() < 3) {
             return;
         }
 
-        // Build path from root to the node (or where it would be)
-        List<Top<E>> path = new ArrayList<>();
-        Top<E> current = root;
-
-        while (current != null) {
-            path.add(current);
-            int cmp = value.compareTo(current.getValue());
-            if (cmp == 0) {
-                break;
-            } else if (cmp < 0) {
-                current = (Top<E>) current.getLeft();
-            } else {
-                current = (Top<E>) current.getRight();
-            }
-        }
-
-        // Perform semi-splaying from bottom to top
-        // Process path in groups of 3: grandparent, parent, child
         int i = path.size() - 1;
 
         while (i >= 2) {
             Top<E> child = path.get(i);
             Top<E> parent = path.get(i - 1);
             Top<E> grandparent = path.get(i - 2);
-
-            // Determine the great-grandparent (if exists) to update the link
             Top<E> greatGrandparent = (i >= 3) ? path.get(i - 3) : null;
 
-            // Perform the appropriate splay step
             Top<E> newSubtreeRoot = splayStep(child, parent, grandparent);
 
-            // Update the link from great-grandparent (or root)
             if (greatGrandparent == null) {
                 root = newSubtreeRoot;
             } else if (greatGrandparent.getLeft() == grandparent) {
@@ -97,40 +62,28 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
                 greatGrandparent.setRight(newSubtreeRoot);
             }
 
-            // Update the path for next iteration
             path.set(i - 2, newSubtreeRoot);
-
-            // Move up by 2 levels
             i -= 2;
         }
-
-        // Handle remaining single rotation (zig case) if path length is even
-        // In standard semi-splay, we don't perform a final zig if only parent remains
-        // But some implementations do. Here we skip it for true semi-splay behavior.
     }
 
     /**
      * Perform a splay step on the triple (child, parent, grandparent).
-     * Returns the new root of this subtree.
      */
     private Top<E> splayStep(Top<E> child, Top<E> parent, Top<E> grandparent) {
         boolean parentIsLeft = (grandparent.getLeft() == parent);
         boolean childIsLeft = (parent.getLeft() == child);
 
         if (parentIsLeft && childIsLeft) {
-            // Zig-Zig (left-left): rotate grandparent right, then parent right
             grandparent = rotateRight(grandparent);
             return rotateRight(grandparent);
         } else if (!parentIsLeft && !childIsLeft) {
-            // Zig-Zig (right-right): rotate grandparent left, then parent left
             grandparent = rotateLeft(grandparent);
             return rotateLeft(grandparent);
         } else if (!parentIsLeft && childIsLeft) {
-            // Zig-Zag (right-left): rotate parent right, then grandparent left
             grandparent.setRight(rotateRight(parent));
             return rotateLeft(grandparent);
         } else {
-            // Zig-Zag (left-right): rotate parent left, then grandparent right
             grandparent.setLeft(rotateLeft(parent));
             return rotateRight(grandparent);
         }
@@ -138,35 +91,33 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
     @Override
     public boolean search(E o) {
-        if (o == null) {
+        if (o == null || root == null) {
             return false;
         }
 
-        boolean found = searchRecursive(root, o);
+        // Build path while searching - single traversal
+        List<Top<E>> path = new ArrayList<>();
+        Top<E> current = root;
+        boolean found = false;
 
-        // Perform semi-splay regardless of whether element was found
-        // (splay to the last accessed node)
-        if (root != null) {
-            semiSplay(o);
+        while (current != null) {
+            path.add(current);
+            int cmp = o.compareTo(current.getValue());
+
+            if (cmp == 0) {
+                found = true;
+                break;
+            } else if (cmp < 0) {
+                current = (Top<E>) current.getLeft();
+            } else {
+                current = (Top<E>) current.getRight();
+            }
         }
+
+        // Splay using the path we already built
+        semiSplayPath(path);
 
         return found;
-    }
-
-    private boolean searchRecursive(Top<E> node, E value) {
-        if (node == null) {
-            return false;
-        }
-
-        int comparison = value.compareTo(node.getValue());
-
-        if (comparison == 0) {
-            return true;
-        } else if (comparison < 0) {
-            return searchRecursive((Top<E>) node.getLeft(), value);
-        } else {
-            return searchRecursive((Top<E>) node.getRight(), value);
-        }
     }
 
     @Override
@@ -175,156 +126,137 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
             return false;
         }
 
-        // Check if element already exists
-        if (containsElement(root, o)) {
-            // Splay to the existing element
-            semiSplay(o);
-            return false;
-        }
-
-        // Add the element
-        root = addRecursive(root, o);
-        incrementSize();
-
-        // Splay to the newly added element
-        semiSplay(o);
-
-        return true;
-    }
-
-    private boolean containsElement(Top<E> node, E value) {
-        if (node == null) {
-            return false;
-        }
-
-        int comparison = value.compareTo(node.getValue());
-
-        if (comparison == 0) {
+        if (root == null) {
+            root = new Top<>(o);
+            incrementSize();
             return true;
-        } else if (comparison < 0) {
-            return containsElement((Top<E>) node.getLeft(), value);
-        } else {
-            return containsElement((Top<E>) node.getRight(), value);
-        }
-    }
-
-    private Top<E> addRecursive(Top<E> node, E value) {
-        if (node == null) {
-            return new Top<>(value);
         }
 
-        int comparison = value.compareTo(node.getValue());
+        // Build path while adding - single traversal
+        List<Top<E>> path = new ArrayList<>();
+        Top<E> current = root;
 
-        if (comparison < 0) {
-            node.setLeft(addRecursive((Top<E>) node.getLeft(), value));
-        } else if (comparison > 0) {
-            node.setRight(addRecursive((Top<E>) node.getRight(), value));
+        while (true) {
+            path.add(current);
+            int cmp = o.compareTo(current.getValue());
+
+            if (cmp == 0) {
+                // Element exists, splay to it and return false
+                semiSplayPath(path);
+                return false;
+            } else if (cmp < 0) {
+                if (current.getLeft() == null) {
+                    Top<E> newNode = new Top<>(o);
+                    current.setLeft(newNode);
+                    path.add(newNode);
+                    incrementSize();
+                    semiSplayPath(path);
+                    return true;
+                }
+                current = (Top<E>) current.getLeft();
+            } else {
+                if (current.getRight() == null) {
+                    Top<E> newNode = new Top<>(o);
+                    current.setRight(newNode);
+                    path.add(newNode);
+                    incrementSize();
+                    semiSplayPath(path);
+                    return true;
+                }
+                current = (Top<E>) current.getRight();
+            }
         }
-
-        return node;
     }
 
     @Override
     public boolean remove(E e) {
-        if (e == null) {
+        if (e == null || root == null) {
             return false;
         }
 
-        // Check if element exists
-        if (!containsElement(root, e)) {
-            // Splay to the last accessed node
-            if (root != null) {
-                semiSplay(e);
+        // Build path while finding the node - single traversal
+        List<Top<E>> path = new ArrayList<>();
+        Top<E> current = root;
+        Top<E> parent = null;
+        boolean isLeftChild = false;
+
+        while (current != null) {
+            int cmp = e.compareTo(current.getValue());
+
+            if (cmp == 0) {
+                break;
             }
+
+            path.add(current);
+            parent = current;
+
+            if (cmp < 0) {
+                current = (Top<E>) current.getLeft();
+                isLeftChild = true;
+            } else {
+                current = (Top<E>) current.getRight();
+                isLeftChild = false;
+            }
+        }
+
+        if (current == null) {
+            // Element not found, splay to last accessed node
+            semiSplayPath(path);
             return false;
         }
 
-        // Find the parent of the node to be removed for splaying
-        E splayTarget = findSplayTargetAfterRemove(e);
+        // Remove the node and get replacement
+        Top<E> replacement = deleteNode(current);
 
-        // Remove the element
-        root = removeRecursive(root, e);
+        // Update parent link
+        if (parent == null) {
+            root = replacement;
+        } else if (isLeftChild) {
+            parent.setLeft(replacement);
+        } else {
+            parent.setRight(replacement);
+        }
+
         decrementSize();
 
-        // Splay to the appropriate node after removal
-        if (root != null && splayTarget != null) {
-            semiSplay(splayTarget);
+        // Splay to parent (or replacement if it exists)
+        if (!path.isEmpty()) {
+            semiSplayPath(path);
         }
 
         return true;
     }
 
     /**
-     * Find the value to splay to after removing the given element.
-     * This is typically the parent of the removed node.
+     * Delete a node and return its replacement.
      */
-    private E findSplayTargetAfterRemove(E value) {
-        Top<E> current = root;
-        Top<E> parent = null;
-
-        while (current != null) {
-            int cmp = value.compareTo(current.getValue());
-            if (cmp == 0) {
-                // Found the node to remove
-                // If it has two children, we'll splay to the inorder successor
-                if (current.getLeft() != null && current.getRight() != null) {
-                    Top<E> successor = findMin((Top<E>) current.getRight());
-                    return successor.getValue();
-                }
-                // Otherwise, splay to parent
-                return parent != null ? parent.getValue() : null;
-            } else if (cmp < 0) {
-                parent = current;
-                current = (Top<E>) current.getLeft();
-            } else {
-                parent = current;
-                current = (Top<E>) current.getRight();
-            }
+    private Top<E> deleteNode(Top<E> node) {
+        if (node.getLeft() == null) {
+            return (Top<E>) node.getRight();
+        } else if (node.getRight() == null) {
+            return (Top<E>) node.getLeft();
         }
 
-        return parent != null ? parent.getValue() : null;
-    }
+        // Two children: find and remove inorder successor
+        Top<E> successorParent = node;
+        Top<E> successor = (Top<E>) node.getRight();
 
-    private Top<E> findMin(Top<E> node) {
-        while (node.getLeft() != null) {
-            node = (Top<E>) node.getLeft();
-        }
-        return node;
-    }
-
-    private Top<E> removeRecursive(Top<E> node, E value) {
-        if (node == null) {
-            return null;
+        while (successor.getLeft() != null) {
+            successorParent = successor;
+            successor = (Top<E>) successor.getLeft();
         }
 
-        int comparison = value.compareTo(node.getValue());
-
-        if (comparison < 0) {
-            node.setLeft(removeRecursive((Top<E>) node.getLeft(), value));
-        } else if (comparison > 0) {
-            node.setRight(removeRecursive((Top<E>) node.getRight(), value));
+        // Remove successor from its current position
+        if (successorParent == node) {
+            successorParent.setRight((Top<E>) successor.getRight());
         } else {
-            // Node gevonden - verwijder het
-
-            // Geval 1: geen kinderen of 1 kind
-            if (node.getLeft() == null) {
-                return (Top<E>) node.getRight();
-            } else if (node.getRight() == null) {
-                return (Top<E>) node.getLeft();
-            }
-
-            // Geval 2: twee kinderen
-            // Vind de kleinste waarde in de rechter subboom (inorder successor)
-            Top<E> successor = findMin((Top<E>) node.getRight());
-
-            // Maak een nieuwe node met de waarde van de successor
-            Top<E> newNode = new Top<>(successor.getValue());
-            newNode.setLeft((Top<E>) node.getLeft());
-            newNode.setRight(removeRecursive((Top<E>) node.getRight(), successor.getValue()));
-
-            return newNode;
+            successorParent.setLeft((Top<E>) successor.getRight());
         }
 
-        return node;
+        // Replace node with successor
+        successor.setLeft((Top<E>) node.getLeft());
+        successor.setRight((Top<E>) node.getRight());
+
+        return successor;
     }
 }
