@@ -5,8 +5,8 @@ import opgave.Node;
 public class Top<E extends Comparable<E>> implements Node<E> {
 
     private final E value;
-    private Top<E> left;
-    private Top<E> right;
+    private Top<E> left; //null als geen left child by default
+    private Top<E> right; //null als geen right child by default
 
     public Top(E value) {
         this.value = value;

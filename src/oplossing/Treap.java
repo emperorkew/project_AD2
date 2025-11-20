@@ -9,8 +9,8 @@ import java.util.Random;
 
 public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
-    private int size;
-    private PriorityTop<E> root;
+    protected int size;
+    protected PriorityTop<E> root;
     private final Random random;
 
     public Treap() {
@@ -74,14 +74,14 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
         return node;
     }
 
-    private PriorityTop<E> rotateLeft(PriorityTop<E> node) {
+    protected PriorityTop<E> rotateLeft(PriorityTop<E> node) {
         PriorityTop<E> r = node.getRight();
         node.setRight(r.getLeft());
         r.setLeft(node);
         return r;
     }
 
-    private PriorityTop<E> rotateRight(PriorityTop<E> node) {
+    protected PriorityTop<E> rotateRight(PriorityTop<E> node) {
         PriorityTop<E> l = node.getLeft();
         node.setLeft(l.getRight());
         l.setRight(node);
