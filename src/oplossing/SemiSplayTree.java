@@ -68,24 +68,29 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
     }
 
     /**
-     * Perform a splay step on the triple (child, parent, grandparent).
+     * Perform a semi-splay step on the triple (child, parent, grandparent).
+     * Semi-splay performs only ONE rotation per triple:
+     * - Zig-zig: rotate at grandparent
+     * - Zig-zag: rotate at parent
      */
     private Top<E> splayStep(Top<E> child, Top<E> parent, Top<E> grandparent) {
         boolean parentIsLeft = (grandparent.getLeft() == parent);
         boolean childIsLeft = (parent.getLeft() == child);
 
         if (parentIsLeft && childIsLeft) {
-            grandparent = rotateRight(grandparent);
+            // Zig-zig left-left: rotate grandparent right
             return rotateRight(grandparent);
         } else if (!parentIsLeft && !childIsLeft) {
-            grandparent = rotateLeft(grandparent);
+            // Zig-zig right-right: rotate grandparent left
             return rotateLeft(grandparent);
         } else if (!parentIsLeft && childIsLeft) {
+            // Zig-zag right-left: rotate parent right
             grandparent.setRight(rotateRight(parent));
-            return rotateLeft(grandparent);
+            return grandparent;
         } else {
+            // Zig-zag left-right: rotate parent left
             grandparent.setLeft(rotateLeft(parent));
-            return rotateRight(grandparent);
+            return grandparent;
         }
     }
 
