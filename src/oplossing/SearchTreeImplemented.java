@@ -43,23 +43,17 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
         if (o == null) {
             return false;
         }
-        return searchRecursive(root, o);
-    }
 
-    private boolean searchRecursive(Top<E> node, E value) {
-        if (node == null) {
-            return false;
+        // Iterative search - O(1) space instead of O(h) recursive stack
+        Top<E> current = root;
+        while (current != null) {
+            int cmp = o.compareTo(current.getValue());
+            if (cmp == 0) {
+                return true;
+            }
+            current = (cmp < 0) ? (Top<E>) current.getLeft() : (Top<E>) current.getRight();
         }
-
-        int comparison = value.compareTo(node.getValue());
-
-        if (comparison == 0) {
-            return true;
-        } else if (comparison < 0) {
-            return searchRecursive((Top<E>) node.getLeft(), value);
-        } else {
-            return searchRecursive((Top<E>) node.getRight(), value);
-        }
+        return false;
     }
 
     @Override
@@ -68,33 +62,37 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
             return false;
         }
 
-        // Combineer zoeken en toevoegen in één traversal
         if (root == null) {
             root = new Top<>(o);
             size++;
             return true;
         }
 
+        // Single traversal - cache child references to avoid double getter calls
         Top<E> current = root;
         while (true) {
-            int comparison = o.compareTo(current.getValue());
+            int cmp = o.compareTo(current.getValue());
 
-            if (comparison == 0) {
-                return false; // Element bestaat al
-            } else if (comparison < 0) {
-                if (current.getLeft() == null) {
+            if (cmp == 0) {
+                return false; // Element exists
+            }
+
+            if (cmp < 0) {
+                Top<E> left = (Top<E>) current.getLeft();
+                if (left == null) {
                     current.setLeft(new Top<>(o));
                     size++;
                     return true;
                 }
-                current = (Top<E>) current.getLeft();
+                current = left;
             } else {
-                if (current.getRight() == null) {
+                Top<E> right = (Top<E>) current.getRight();
+                if (right == null) {
                     current.setRight(new Top<>(o));
                     size++;
                     return true;
                 }
-                current = (Top<E>) current.getRight();
+                current = right;
             }
         }
     }
@@ -187,7 +185,8 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
 
     @Override
     public List<E> values() {
-        List<E> result = new ArrayList<>();
+        // Pre-allocate exact size to avoid dynamic resizing
+        List<E> result = new ArrayList<>(size);
         inOrderTraversal(root, result);
         return result;
     }
