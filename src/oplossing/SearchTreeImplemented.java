@@ -9,17 +9,33 @@ import java.util.List;
 public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTree<E> {
 
     private int size;
-    private Top<E> root;
+    protected Top<E> root;
 
     public SearchTreeImplemented() {
         this.size = 0;
         this.root = null;
     }
 
+    protected void setRoot(Top<E> root) {
+        this.root = root;
+    }
+
+    protected void incrementSize() {
+        this.size++;
+    }
+
+    protected void decrementSize() {
+        this.size--;
+    }
+
 
     @Override
     public int size() {
         return this.size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
     }
 
     @Override
@@ -52,83 +68,116 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
             return false;
         }
 
-        if (search(o)) {
-            return false; // Element bestaat al
+        // Combineer zoeken en toevoegen in één traversal
+        if (root == null) {
+            root = new Top<>(o);
+            size++;
+            return true;
         }
 
-        root = addRecursive(root, o);
-        size++;
-        return true;
-    }
+        Top<E> current = root;
+        while (true) {
+            int comparison = o.compareTo(current.getValue());
 
-    private Top<E> addRecursive(Top<E> node, E value) {
-        if (node == null) {
-            return new Top<>(value);
+            if (comparison == 0) {
+                return false; // Element bestaat al
+            } else if (comparison < 0) {
+                if (current.getLeft() == null) {
+                    current.setLeft(new Top<>(o));
+                    size++;
+                    return true;
+                }
+                current = (Top<E>) current.getLeft();
+            } else {
+                if (current.getRight() == null) {
+                    current.setRight(new Top<>(o));
+                    size++;
+                    return true;
+                }
+                current = (Top<E>) current.getRight();
+            }
         }
-
-        int comparison = value.compareTo(node.getValue());
-
-        if (comparison < 0) {
-            node.setLeft(addRecursive((Top<E>) node.getLeft(), value));
-        } else if (comparison > 0) {
-            node.setRight(addRecursive((Top<E>) node.getRight(), value));
-        }
-
-        return node;
     }
 
     @Override
     public boolean remove(E e) {
-        if (e == null || !search(e)) {
+        if (e == null || root == null) {
             return false;
         }
 
-        root = removeRecursive(root, e);
+        // Zoek het te verwijderen element en zijn parent in één traversal
+        Top<E> parent = null;
+        Top<E> current = root;
+        boolean isLeftChild = false;
+
+        while (current != null) {
+            int comparison = e.compareTo(current.getValue());
+
+            if (comparison == 0) {
+                break; // Gevonden
+            } else if (comparison < 0) {
+                parent = current;
+                current = (Top<E>) current.getLeft();
+                isLeftChild = true;
+            } else {
+                parent = current;
+                current = (Top<E>) current.getRight();
+                isLeftChild = false;
+            }
+        }
+
+        if (current == null) {
+            return false; // Element niet gevonden
+        }
+
+        // Verwijder de node
+        Top<E> replacement = deleteNode(current);
+
+        // Update de parent link
+        if (parent == null) {
+            root = replacement;
+        } else if (isLeftChild) {
+            parent.setLeft(replacement);
+        } else {
+            parent.setRight(replacement);
+        }
+
         size--;
         return true;
     }
 
-    private Top<E> removeRecursive(Top<E> node, E value) {
-        if (node == null) {
-            return null;
+    /**
+     * Verwijdert een node en retourneert de vervangende node.
+     */
+    private Top<E> deleteNode(Top<E> node) {
+        // Geval 1: geen kinderen of 1 kind
+        if (node.getLeft() == null) {
+            return (Top<E>) node.getRight();
+        } else if (node.getRight() == null) {
+            return (Top<E>) node.getLeft();
         }
 
-        int comparison = value.compareTo(node.getValue());
+        // Geval 2: twee kinderen - vind en verwijder inorder successor
+        Top<E> successorParent = node;
+        Top<E> successor = (Top<E>) node.getRight();
 
-        if (comparison < 0) {
-            node.setLeft(removeRecursive((Top<E>) node.getLeft(), value));
-        } else if (comparison > 0) {
-            node.setRight(removeRecursive((Top<E>) node.getRight(), value));
+        while (successor.getLeft() != null) {
+            successorParent = successor;
+            successor = (Top<E>) successor.getLeft();
+        }
+
+        // Verwijder successor uit zijn huidige positie
+        if (successorParent == node) {
+            successorParent.setRight((Top<E>) successor.getRight());
         } else {
-            // Node gevonden - verwijder het
-
-            // Geval 1: geen kinderen of 1 kind
-            if (node.getLeft() == null) {
-                return (Top<E>) node.getRight();
-            } else if (node.getRight() == null) {
-                return (Top<E>) node.getLeft();
-            }
-
-            // Geval 2: twee kinderen
-            // Vind de kleinste waarde in de rechter subboom (inorder successor)
-            Top<E> successor = findMin((Top<E>) node.getRight());
-
-            // Maak een nieuwe node met de waarde van de successor
-            Top<E> newNode = new Top<>(successor.getValue());
-            newNode.setLeft((Top<E>) node.getLeft());
-            newNode.setRight(removeRecursive((Top<E>) node.getRight(), successor.getValue()));
-
-            return newNode;
+            successorParent.setLeft((Top<E>) successor.getRight());
         }
 
-        return node;
-    }
+        // Vervang node door successor
+        successor.setLeft((Top<E>) node.getLeft());
+        successor.setRight((Top<E>) node.getRight());
 
-    private Top<E> findMin(Top<E> node) {
-        while (node.getLeft() != null) {
-            node = (Top<E>) node.getLeft();
-        }
-        return node;
+        return successor;
     }
 
     @Override
