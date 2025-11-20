@@ -37,7 +37,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
 
     /**
      * Perform semi-splay operation on the given path.
-     * The path should be ordered from root to the accessed node.
+     * Bottom-up semi-splay: process each triple with ONE rotation, moving up by 2.
      */
     private void semiSplayPath(List<Top<E>> path) {
         if (path.size() < 3) {
@@ -68,27 +68,27 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
     }
 
     /**
-     * Perform a splay step on the triple (child, parent, grandparent).
-     * Uses full splay rotations (two rotations per triple).
+     * Perform a semi-splay step on the triple (child, parent, grandparent).
+     * Semi-splay:
+     * - Zig-zig: ONE rotation at grandparent (parent becomes new root)
+     * - Zig-zag: TWO rotations (child becomes new root)
      */
     private Top<E> splayStep(Top<E> child, Top<E> parent, Top<E> grandparent) {
         boolean parentIsLeft = (grandparent.getLeft() == parent);
         boolean childIsLeft = (parent.getLeft() == child);
 
         if (parentIsLeft && childIsLeft) {
-            // Zig-zig left-left: rotate grandparent right, then rotate new root right
-            grandparent = rotateRight(grandparent);
+            // Zig-zig left-left: ONE rotation - rotate grandparent right
             return rotateRight(grandparent);
         } else if (!parentIsLeft && !childIsLeft) {
-            // Zig-zig right-right: rotate grandparent left, then rotate new root left
-            grandparent = rotateLeft(grandparent);
+            // Zig-zig right-right: ONE rotation - rotate grandparent left
             return rotateLeft(grandparent);
         } else if (!parentIsLeft && childIsLeft) {
-            // Zig-zag right-left: rotate parent right, then rotate grandparent left
+            // Zig-zag right-left: TWO rotations
             grandparent.setRight(rotateRight(parent));
             return rotateLeft(grandparent);
         } else {
-            // Zig-zag left-right: rotate parent left, then rotate grandparent right
+            // Zig-zag left-right: TWO rotations
             grandparent.setLeft(rotateLeft(parent));
             return rotateRight(grandparent);
         }

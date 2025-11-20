@@ -1,6 +1,8 @@
 package test;
 
+import opgave.SearchTree;
 import oplossing.SearchTreeImplemented;
+import oplossing.SemiSplayTree;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -360,5 +362,32 @@ public class SearchTreeImplementedTest {
         assertEquals(0, tree.size());
         assertNull(tree.root());
         assertTrue(tree.values().isEmpty());
+    }
+
+    //==== verwijderen ====
+    @Test
+    public void checkWithExample() {
+        SearchTree<Integer> tree = new SemiSplayTree<>();
+
+        for (int i: List.of(5, 7, 2, 6, 1, 3, 8, 4, 9, 0, 11, 15, 13, 12)) {
+            tree.add(i);
+        }
+
+        assertEquals(6, tree.root().getValue());
+        assertEquals(3, tree.root().getLeft().getValue());
+        assertEquals(12, tree.root().getRight().getValue());
+        assertEquals(1, tree.root().getLeft().getLeft().getValue());
+        assertEquals(4, tree.root().getLeft().getRight().getValue());
+        assertEquals(11, tree.root().getRight().getLeft().getValue());
+        assertEquals(13, tree.root().getRight().getRight().getValue());
+        assertEquals(0, tree.root().getLeft().getLeft().getLeft().getValue());
+        assertEquals(2, tree.root().getLeft().getLeft().getRight().getValue());
+        assertEquals(5, tree.root().getLeft().getRight().getRight().getValue());
+
+        assertEquals(9, tree.root().getRight().getLeft().getLeft().getValue());
+        assertEquals(8, tree.root().getRight().getLeft().getLeft().getLeft().getValue());
+        assertEquals(7, tree.root().getRight().getLeft().getLeft().getLeft().getLeft().getValue());
+
+        assertEquals(15, tree.root().getRight().getRight().getRight().getValue());
     }
 }
