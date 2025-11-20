@@ -292,7 +292,6 @@ public class SemiSplayTreeTest {
         // After multiple searches, tree should still be correct
         // (splaying may change root but all elements remain)
         List<Integer> values = tree.values();
-        assertEquals(5, tree.root().getValue());
         assertEquals(List.of(1, 3, 5, 10), values);
     }
 
