@@ -10,23 +10,21 @@ public class Top<E extends Comparable<E>> implements Node<E> {
 
     public Top(E value) {
         this.value = value;
-        this.left = null;
-        this.right = null;
     }
 
     @Override
     public E getValue() {
-        return this.value;
+        return value;
     }
 
     @Override
-    public Node<E> getLeft() {
-        return this.left;
+    public Top<E> getLeft() {
+        return left;
     }
 
     @Override
-    public Node<E> getRight() {
-        return this.right;
+    public Top<E> getRight() {
+        return right;
     }
 
     public void setLeft(Top<E> left) {

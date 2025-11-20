@@ -13,7 +13,6 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
 
     public SearchTreeImplemented() {
         this.size = 0;
-        this.root = null;
     }
 
     protected void setRoot(Top<E> root) {
@@ -21,17 +20,16 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
     }
 
     protected void incrementSize() {
-        this.size++;
+        size++;
     }
 
     protected void decrementSize() {
-        this.size--;
+        size--;
     }
-
 
     @Override
     public int size() {
-        return this.size;
+        return size;
     }
 
     public boolean isEmpty() {
@@ -40,27 +38,20 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
 
     @Override
     public boolean search(E o) {
-        if (o == null) {
-            return false;
-        }
+        if (o == null) return false;
 
-        // Iterative search - O(1) space instead of O(h) recursive stack
         Top<E> current = root;
         while (current != null) {
             int cmp = o.compareTo(current.getValue());
-            if (cmp == 0) {
-                return true;
-            }
-            current = (cmp < 0) ? (Top<E>) current.getLeft() : (Top<E>) current.getRight();
+            if (cmp == 0) return true;
+            current = (cmp < 0) ? current.getLeft() : current.getRight();
         }
         return false;
     }
 
     @Override
     public boolean add(E o) {
-        if (o == null) {
-            return false;
-        }
+        if (o == null) return false;
 
         if (root == null) {
             root = new Top<>(o);
@@ -68,17 +59,14 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
             return true;
         }
 
-        // Single traversal - cache child references to avoid double getter calls
         Top<E> current = root;
         while (true) {
             int cmp = o.compareTo(current.getValue());
 
-            if (cmp == 0) {
-                return false; // Element exists
-            }
+            if (cmp == 0) return false;
 
             if (cmp < 0) {
-                Top<E> left = (Top<E>) current.getLeft();
+                Top<E> left = current.getLeft();
                 if (left == null) {
                     current.setLeft(new Top<>(o));
                     size++;
@@ -86,7 +74,7 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
                 }
                 current = left;
             } else {
-                Top<E> right = (Top<E>) current.getRight();
+                Top<E> right = current.getRight();
                 if (right == null) {
                     current.setRight(new Top<>(o));
                     size++;
@@ -99,39 +87,31 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
 
     @Override
     public boolean remove(E e) {
-        if (e == null || root == null) {
-            return false;
-        }
+        if (e == null || root == null) return false;
 
-        // Zoek het te verwijderen element en zijn parent in één traversal
         Top<E> parent = null;
         Top<E> current = root;
         boolean isLeftChild = false;
 
         while (current != null) {
-            int comparison = e.compareTo(current.getValue());
+            int cmp = e.compareTo(current.getValue());
 
-            if (comparison == 0) {
-                break; // Gevonden
-            } else if (comparison < 0) {
-                parent = current;
-                current = (Top<E>) current.getLeft();
+            if (cmp == 0) break;
+
+            parent = current;
+            if (cmp < 0) {
+                current = current.getLeft();
                 isLeftChild = true;
             } else {
-                parent = current;
-                current = (Top<E>) current.getRight();
+                current = current.getRight();
                 isLeftChild = false;
             }
         }
 
-        if (current == null) {
-            return false; // Element niet gevonden
-        }
+        if (current == null) return false;
 
-        // Verwijder de node
         Top<E> replacement = deleteNode(current);
 
-        // Update de parent link
         if (parent == null) {
             root = replacement;
         } else if (isLeftChild) {
@@ -144,60 +124,47 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
         return true;
     }
 
-    /**
-     * Verwijdert een node en retourneert de vervangende node.
-     */
     private Top<E> deleteNode(Top<E> node) {
-        // Geval 1: geen kinderen of 1 kind
-        if (node.getLeft() == null) {
-            return (Top<E>) node.getRight();
-        } else if (node.getRight() == null) {
-            return (Top<E>) node.getLeft();
-        }
+        if (node.getLeft() == null) return node.getRight();
+        if (node.getRight() == null) return node.getLeft();
 
-        // Geval 2: twee kinderen - vind en verwijder inorder successor
+        // Two children: find inorder successor
         Top<E> successorParent = node;
-        Top<E> successor = (Top<E>) node.getRight();
+        Top<E> successor = node.getRight();
 
         while (successor.getLeft() != null) {
             successorParent = successor;
-            successor = (Top<E>) successor.getLeft();
+            successor = successor.getLeft();
         }
 
-        // Verwijder successor uit zijn huidige positie
         if (successorParent == node) {
-            successorParent.setRight((Top<E>) successor.getRight());
+            successorParent.setRight(successor.getRight());
         } else {
-            successorParent.setLeft((Top<E>) successor.getRight());
+            successorParent.setLeft(successor.getRight());
         }
 
-        // Vervang node door successor
-        successor.setLeft((Top<E>) node.getLeft());
-        successor.setRight((Top<E>) node.getRight());
+        successor.setLeft(node.getLeft());
+        successor.setRight(node.getRight());
 
         return successor;
     }
 
     @Override
     public Node<E> root() {
-        return this.root;
+        return root;
     }
 
     @Override
     public List<E> values() {
-        // Pre-allocate exact size to avoid dynamic resizing
         List<E> result = new ArrayList<>(size);
         inOrderTraversal(root, result);
         return result;
     }
 
     private void inOrderTraversal(Top<E> node, List<E> result) {
-        if (node == null) {
-            return;
-        }
-
-        inOrderTraversal((Top<E>) node.getLeft(), result);
+        if (node == null) return;
+        inOrderTraversal(node.getLeft(), result);
         result.add(node.getValue());
-        inOrderTraversal((Top<E>) node.getRight(), result);
+        inOrderTraversal(node.getRight(), result);
     }
 }
