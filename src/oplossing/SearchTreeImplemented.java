@@ -6,6 +6,31 @@ import opgave.SearchTree;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A standard Binary Search Tree implementation that serves as a base class for specialized tree variants.
+ * <p>
+ * This class provides iterative implementations of core BST operations to minimize stack space usage.
+ * It implements the SearchTree interface and can be extended by self-balancing tree variants
+ * such as SemiSplayTree.
+ * <p>
+ * Key characteristics:
+ * - Iterative search, add, and remove operations (no recursion)
+ * - Uses inorder successor for node deletion with two children
+ * - Maintains size tracking with protected increment/decrement methods for subclasses
+ * - Iterative in-order traversal for values() method
+ * <p>
+ * Time complexity:
+ * - Average case O(log n) for search, add, and remove operations
+ * - Worst case O(n) for degenerate (linear) trees
+ * <p>
+ * Space complexity:
+ * - O(n) for the tree structure
+ * - O(1) auxiliary space for most operations (iterative approach)
+ * - O(h) auxiliary space for values() traversal (where h is tree height)
+ *
+ * @param <E> the type of elements maintained by this tree, must be Comparable
+ * @author Remco Marien
+ */
 public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTree<E> {
 
     private int size;

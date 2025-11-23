@@ -5,28 +5,28 @@ import java.util.List;
 
 /**
  * A Semi-Splay Tree implementation that extends SearchTreeImplemented.
- *
+ * <p>
  * Semi-splay trees are a variant of splay trees that perform partial splaying operations
  * to improve tree balance while reducing the overhead of full splay operations.
- *
+ * <p>
  * This implementation uses bottom-up splaying: the path from root to the accessed node
  * is first collected, then splay rotations are performed from the bottom up toward the root.
- *
+ * <p>
  * Key characteristics:
  * - After each operation (search, add, remove), a semi-splay is performed on the access path
- * - Zig-zig case: performs ONE rotation at the grandparent (vs two in full splay)
+ * - Zig-zig case: performs ONE rotation at the grandparent (vs. two in full splay)
  * - Zig-zag case: performs TWO rotations (same as full splay)
  * - Splaying stops when fewer than 3 nodes remain in the path
- *
+ * <p>
  * Time complexity:
  * - Amortized O(log n) for search, add, and remove operations
  * - Worst case O(n) for individual operations
- *
+ * <p>
  * Space complexity:
  * - O(n) for the tree structure
  * - O(h) auxiliary space for operations (where h is tree height)
  *
- * @param <E> the type of elements maintained by this tree, must be Comparable
+ * @param <E> the type of elements maintained by this tree must be Comparable
  * @author Remco Marien
  */
 public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemented<E> {
@@ -36,7 +36,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
     }
 
     private void semiSplayPath(List<Top<E>> path) {
-        if (path.size() < 3) return; //No splay needed when path is too short
+        if (path.size() < 3) return; //No splay needed when a path is too short
 
         int i = path.size() - 1; //index of the last node in the path
 
@@ -87,7 +87,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         // safety check
         if (o == null || root == null) return false;
 
-        // Track path for bubble-up after priority increase (capacity 32 covers ~4B nodes) --> pre-allocated memory to save stack space
+        // Track the path for bubble-up after priority increase (capacity 32 covers ~4B nodes) --> pre-allocated memory to save stack space
         List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
 
@@ -113,14 +113,14 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         // Safety check
         if (o == null) return false;
 
-        // when root is null meaning that the tree is empty, added node will become root
+        // when root is null meaning that the tree is empty, the added node will become root
         if (root == null) {
             root = new Top<>(o);
             incrementSize();
             return true;
         }
 
-        // Track path for bubble-up after priority increase (capacity 32 covers ~4B nodes) --> pre-allocated memory to save stack space
+        // Track the path for bubble-up after priority increase (capacity 32 covers ~4B nodes) --> pre-allocated memory to save stack space
         List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
 
@@ -213,7 +213,7 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
         if (node.getLeft() == null) return node.getRight();
         if (node.getRight() == null) return node.getLeft();
 
-        // Two children: find inorder predecessor
+        // Two children: find an inorder predecessor
         Top<E> predecessorParent = node;
         Top<E> predecessor = node.getLeft();
 
