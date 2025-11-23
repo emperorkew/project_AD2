@@ -1,6 +1,8 @@
 package test;
 
+import opgave.Node;
 import oplossing.SemiSplayTree;
+import oplossing.Top;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -58,6 +60,18 @@ public class SemiSplayTreeTest {
     }
 
     // === Add Tests ===
+
+    @Test
+    @DisplayName("Path < 3: Geen Splay bij Root of Kind van Root")
+    void testNoSplayConditions() {
+        tree.add(10);
+        tree.add(5); // Pad: [10, 5] -> size 2
+        // Actie: Search 5
+        tree.search(5);
+        // Assertie: Omdat size < 3, mag er niks veranderen.
+        assertEquals(10, tree.root().getValue());
+        assertEquals(5, tree.root().getLeft().getValue());
+    }
 
     @Test
     @DisplayName("Add should return true for new elements")
@@ -274,6 +288,95 @@ public class SemiSplayTreeTest {
     // === Semi-Splay Specific Tests ===
 
     @Test
+    @DisplayName("Figuur 6 Scenario: Combinatie van Zig-Zag en Zig-Zig")
+    void testFigure6Scenario() {
+        // 1. Maak de nodes aan
+        Top<Integer> n75 = new Top<>(75);
+        Top<Integer> n60 = new Top<>(60);
+        Top<Integer> n30 = new Top<>(30);
+        Top<Integer> n4 = new Top<>(4);
+        Top<Integer> n13 = new Top<>(13);
+        Top<Integer> n7 = new Top<>(7);
+
+        // 2. Bouw de boomstructuur exact na zoals in Figuur 6 (links)
+        // Pad: 75 -> 60 -> 30 -> 4 -> 13 -> 7
+
+        n75.setLeft(n60);      // Root -> 60
+        n60.setLeft(n30);      // 60 -> 30 (Zig-Zig lijn begint)
+        n30.setLeft(n4);       // 30 -> 4
+        n4.setRight(n13);      // 4 -> 13 (Zig-Zag knik)
+        n13.setLeft(n7);       // 13 -> 7 (Target)
+
+        // Injecteer de root (hack om splay tijdens insert te omzeilen)
+        tree.setRoot(n75);
+
+        // 3. Voer de search uit op de onderste node (7)
+        boolean found = tree.search(7);
+        assertTrue(found, "Element 7 moet gevonden worden");
+
+        // 4. Verifieer de structuur exact zoals in Figuur 6 (rechts)
+
+        // De Root (75) blijft ongewijzigd omdat de loop stopt (step size 2)
+        assertEquals(75, tree.root().getValue());
+
+        // Niveau 1: 30 moet links van 75 staan (Resultaat van de bovenste Zig-Zig)
+        Node<Integer> n30_new = tree.root().getLeft();
+        assertEquals(30, n30_new.getValue(), "30 moet omhoog gekomen zijn door de Zig-Zig splay");
+
+        // Niveau 2: Kinderen van 30
+        assertEquals(60, n30_new.getRight().getValue(), "60 moet rechts van 30 gezakt zijn");
+        Node<Integer> n7_new = n30_new.getLeft();
+        assertEquals(7, n7_new.getValue(), "7 is omhoog gekomen door de Zig-Zag en nu kind van 30");
+
+        // Niveau 3: Kinderen van 7 (Resultaat van de onderste Zig-Zag)
+        // Bij de Zig-Zag (4 -> 13 -> 7) wordt 7 de ouder van 4 en 13.
+        assertEquals(4, n7_new.getLeft().getValue(), "4 moet links van 7 staan");
+        assertEquals(13, n7_new.getRight().getValue(), "13 moet rechts van 7 staan");
+    }
+
+    @Test
+    @DisplayName("Zig-Zig (Left): Parent wordt Root, niet Child")
+    void testZigZigLeftSemiSplay() {
+        // Situatie: 30 -> 20 -> 10
+        tree.add(30);
+        tree.add(20);
+        tree.add(10);
+
+        // Pad voor 10: [30, 20, 10]
+        // Child: 10, Parent: 20, Grandparent: 30
+        // Dit is een Zig-Zig (beide links).
+
+        tree.search(10);
+
+        assertEquals(20, tree.root().getValue(),
+                "Bij Semi-Splay Zig-Zig moet de PARENT (20) de plek van Grandparent innemen.");
+
+        assertEquals(10, tree.root().getLeft().getValue(), "Child (10) blijft onder de parent.");
+        assertEquals(30, tree.root().getRight().getValue(), "Grandparent (30) zakt naar rechts.");
+    }
+
+    @Test
+    @DisplayName("Zig-Zag (Left-Right): Child wordt Root (Double Rotation)")
+    void testZigZagSemiSplay() {
+        // Situatie: 30 -> 10 -> 20
+        tree.add(30);
+        tree.add(10);
+        tree.add(20);
+
+        // Pad voor 20: [30, 10, 20]
+        // Child: 20, Parent: 10 (Left child of 30), GP: 30
+        // Dit is Left-Right (Zig-Zag).
+
+        tree.search(20);
+
+        assertEquals(20, tree.root().getValue(),
+                "Bij Zig-Zag moet de target (20) wél naar boven komen.");
+        assertEquals(10, tree.root().getLeft().getValue());
+        assertEquals(30, tree.root().getRight().getValue());
+    }
+
+
+    @Test
     @DisplayName("Tree structure should change after search (semi-splay)")
     void treeStructureShouldChangeAfterSearch() {
         // Build a tree with elements
@@ -479,4 +582,19 @@ public class SemiSplayTreeTest {
             assertTrue(tree.search(i * 10 - 5));
         }
     }
+
+    // --- Hulpfunctie ---
+
+    private boolean isValidBST(Node<Integer> node) {
+        return validate(node, Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
+    private boolean validate(Node<Integer> node, Integer min, Integer max) {
+        if (node == null) return true;
+        if (node.getValue().compareTo(min) <= 0 || node.getValue().compareTo(max) >= 0) return false;
+        return validate(node.getLeft(), min, node.getValue())
+                && validate(node.getRight(), node.getValue(), max);
+    }
+
+
 }

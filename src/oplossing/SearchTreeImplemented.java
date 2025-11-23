@@ -15,7 +15,7 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
         this.size = 0;
     }
 
-    protected void setRoot(Top<E> root) {
+    public void setRoot(Top<E> root) {
         this.root = root;
     }
 
