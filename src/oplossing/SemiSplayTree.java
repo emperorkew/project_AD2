@@ -3,6 +3,32 @@ package oplossing;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A Semi-Splay Tree implementation that extends SearchTreeImplemented.
+ *
+ * Semi-splay trees are a variant of splay trees that perform partial splaying operations
+ * to improve tree balance while reducing the overhead of full splay operations.
+ *
+ * This implementation uses bottom-up splaying: the path from root to the accessed node
+ * is first collected, then splay rotations are performed from the bottom up toward the root.
+ *
+ * Key characteristics:
+ * - After each operation (search, add, remove), a semi-splay is performed on the access path
+ * - Zig-zig case: performs ONE rotation at the grandparent (vs two in full splay)
+ * - Zig-zag case: performs TWO rotations (same as full splay)
+ * - Splaying stops when fewer than 3 nodes remain in the path
+ *
+ * Time complexity:
+ * - Amortized O(log n) for search, add, and remove operations
+ * - Worst case O(n) for individual operations
+ *
+ * Space complexity:
+ * - O(n) for the tree structure
+ * - O(h) auxiliary space for operations (where h is tree height)
+ *
+ * @param <E> the type of elements maintained by this tree, must be Comparable
+ * @author Remco Marien
+ */
 public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemented<E> {
 
     public SemiSplayTree() {
