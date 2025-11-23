@@ -583,18 +583,4 @@ public class SemiSplayTreeTest {
         }
     }
 
-    // --- Hulpfunctie ---
-
-    private boolean isValidBST(Node<Integer> node) {
-        return validate(node, Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-
-    private boolean validate(Node<Integer> node, Integer min, Integer max) {
-        if (node == null) return true;
-        if (node.getValue().compareTo(min) <= 0 || node.getValue().compareTo(max) >= 0) return false;
-        return validate(node.getLeft(), min, node.getValue())
-                && validate(node.getRight(), node.getValue(), max);
-    }
-
-
 }
