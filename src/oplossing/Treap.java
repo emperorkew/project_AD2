@@ -50,12 +50,12 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             return true;
         }
 
-        // Track path for bubble-up (capacity 32 covers trees up to ~4B nodes)
+        // Track the path for bubble-up (capacity 32 covers trees up to ~4B nodes)
         List<PriorityTop<E>> path = new ArrayList<>(32);
         PriorityTop<E> current = root;
         boolean insertLeft = false;
 
-        // Find insertion point
+        // Find the insertion point
         while (current != null) {
             int cmp = o.compareTo(current.getValue());
             if (cmp == 0) return false; // Already exists
@@ -67,7 +67,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
         // Insert new node
         PriorityTop<E> newNode = new PriorityTop<>(o, priority);
-        PriorityTop<E> parent = path.get(path.size() - 1);
+        PriorityTop<E> parent = path.getLast();
         if (insertLeft) {
             parent.setLeft(newNode);
         } else {
@@ -82,7 +82,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     }
 
     /**
-     * Bubble up the last node in path if its priority exceeds its parent's.
+     * Bubble up the last node in a path if its priority exceeds its parent's.
      */
     protected void bubbleUp(List<PriorityTop<E>> path) {
         for (int i = path.size() - 1; i > 0; i--) {
@@ -114,7 +114,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     public boolean remove(E e) {
         if (e == null || root == null) return false;
 
-        // Find node and its parent
+        // Find a node and its parent
         PriorityTop<E> parent = null;
         PriorityTop<E> current = root;
         boolean isLeftChild = false;
@@ -135,7 +135,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
         if (current == null) return false;
 
-        // Rotate down iteratively until node is a leaf
+        // Rotate down iteratively until the node is a leaf
         while (current.getLeft() != null || current.getRight() != null) {
             PriorityTop<E> l = current.getLeft();
             PriorityTop<E> r = current.getRight();
@@ -190,33 +190,6 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     @Override
     public List<E> values() {
-        List<E> result = new ArrayList<>(size);
-        // Iterative in-order traversal using Morris-like approach with explicit stack
-        PriorityTop<E> current = root;
-        PriorityTop<E>[] stack = (PriorityTop<E>[]) new PriorityTop[32];
-        int top = -1;
-
-        while (current != null || top >= 0) {
-            // Go to leftmost node
-            while (current != null) {
-                if (++top >= stack.length) {
-                    // Resize stack if needed (rare for balanced trees)
-                    PriorityTop<E>[] newStack = (PriorityTop<E>[]) new PriorityTop[stack.length * 2];
-                    System.arraycopy(stack, 0, newStack, 0, stack.length);
-                    stack = newStack;
-                }
-                stack[top] = current;
-                current = current.getLeft();
-            }
-
-            // Process node
-            current = stack[top--];
-            result.add(current.getValue());
-
-            // Move to right subtree
-            current = current.getRight();
-        }
-
-        return result;
+        return SearchTreeImplemented.inOrderTraversal(root, size);
     }
 }

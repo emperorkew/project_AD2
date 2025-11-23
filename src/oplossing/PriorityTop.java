@@ -18,7 +18,7 @@ import opgave.PriorityNode;
  * The priority is typically used to maintain heap properties in the tree structure,
  * while the value maintains BST properties.
  *
- * @param <E> the type of element stored in this node, must be Comparable
+ * @param <E> the type of element stored in this node must be Comparable
  * @author Remco Marien
  */
 

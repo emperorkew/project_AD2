@@ -28,7 +28,7 @@ import java.util.List;
  * - O(1) auxiliary space for most operations (iterative approach)
  * - O(h) auxiliary space for values() traversal (where h is tree height)
  *
- * @param <E> the type of elements maintained by this tree, must be Comparable
+ * @param <E> the type of elements maintained by this tree must be Comparable
  * @author Remco Marien
  */
 public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTree<E> {
@@ -36,8 +36,81 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
     private int size;
     protected Top<E> root;
 
+    /**
+     * Result of finding a node in the tree containing the node, its parent, and traversal path.
+     * Used by subclasses that need the path (e.g., SemiSplayTree).
+     */
+    protected record FindResult<E extends Comparable<E>>(
+            Top<E> node,
+            Top<E> parent,
+            boolean isLeftChild,
+            List<Top<E>> path
+    ) {}
+
+    /**
+     * Lightweight result of finding a node without path tracking.
+     * Used by operations that don't need the traversal path.
+     */
+    private record SimpleFindResult<E extends Comparable<E>>(
+            Top<E> node,
+            Top<E> parent,
+            boolean isLeftChild
+    ) {}
+
     public SearchTreeImplemented() {
         this.size = 0;
+    }
+
+    /**
+     * Finds a node in the tree and returns traversal information.
+     *
+     * @param e the element to find
+     * @return FindResult containing the node (or null if not found), parent, isLeftChild flag, and path
+     */
+    protected FindResult<E> findNode(E e) {
+        List<Top<E>> path = new ArrayList<>(32);
+        Top<E> current = root;
+        Top<E> parent = null;
+        boolean isLeftChild = false;
+
+        while (current != null) {
+            int cmp = e.compareTo(current.getValue());
+
+            if (cmp == 0) break;
+
+            path.add(current);
+            parent = current;
+
+            if (cmp < 0) {
+                current = current.getLeft();
+                isLeftChild = true;
+            } else {
+                current = current.getRight();
+                isLeftChild = false;
+            }
+        }
+
+        return new FindResult<>(current, parent, isLeftChild, path);
+    }
+
+    /**
+     * Finds a node without tracking the path. More efficient for operations that don't need the path.
+     */
+    private SimpleFindResult<E> findNodeSimple(E e) {
+        Top<E> current = root;
+        Top<E> parent = null;
+        boolean isLeftChild = false;
+
+        while (current != null) {
+            int cmp = e.compareTo(current.getValue());
+            if (cmp == 0) break;
+
+            parent = current;
+            isLeftChild = cmp < 0;
+            current = isLeftChild ? current.getLeft() : current.getRight();
+        }
+
+        return new SimpleFindResult<>(current, parent, isLeftChild);
     }
 
     public void setRoot(Top<E> root) {
@@ -119,35 +192,18 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
     public boolean remove(E e) {
         if (e == null || root == null) return false;
 
-        Top<E> parent = null;
-        Top<E> current = root;
-        boolean isLeftChild = false;
+        SimpleFindResult<E> result = findNodeSimple(e);
 
-        while (current != null) {
-            int cmp = e.compareTo(current.getValue());
+        if (result.node() == null) return false;
 
-            if (cmp == 0) break;
+        Top<E> replacement = deleteNode(result.node());
 
-            parent = current;
-            if (cmp < 0) {
-                current = current.getLeft();
-                isLeftChild = true;
-            } else {
-                current = current.getRight();
-                isLeftChild = false;
-            }
-        }
-
-        if (current == null) return false;
-
-        Top<E> replacement = deleteNode(current);
-
-        if (parent == null) {
+        if (result.parent() == null) {
             root = replacement;
-        } else if (isLeftChild) {
-            parent.setLeft(replacement);
+        } else if (result.isLeftChild()) {
+            result.parent().setLeft(replacement);
         } else {
-            parent.setRight(replacement);
+            result.parent().setRight(replacement);
         }
 
         size--;
@@ -181,23 +237,29 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
 
     @Override
     public List<E> values() {
-        List<E> result = new ArrayList<>(size);
-        // Iterative in-order traversal to save O(h) stack space
-        Top<E> current = root;
-        Top<E>[] stack = (Top<E>[]) new Top[32];
-        int top = -1;
+        return inOrderTraversal(root, size);
+    }
 
-        while (current != null || top >= 0) {
+    /**
+     * Performs an iterative in-order traversal of a tree rooted at the given node.
+     *
+     * @param root the root node of the tree
+     * @param size the expected size (for list pre-allocation)
+     * @param <E>  the element type
+     * @param <N>  the node type (Top or subclass like PriorityTop)
+     * @return list of values in sorted order
+     */
+    protected static <E extends Comparable<E>, N extends Top<E>> List<E> inOrderTraversal(N root, int size) {
+        List<E> result = new ArrayList<>(size);
+        Top<E> current = root;
+        List<Top<E>> stack = new ArrayList<>(32);
+
+        while (current != null || !stack.isEmpty()) {
             while (current != null) {
-                if (++top >= stack.length) {
-                    Top<E>[] newStack = (Top<E>[]) new Top[stack.length * 2];
-                    System.arraycopy(stack, 0, newStack, 0, stack.length);
-                    stack = newStack;
-                }
-                stack[top] = current;
+                stack.add(current);
                 current = current.getLeft();
             }
-            current = stack[top--];
+            current = stack.removeLast();
             result.add(current.getValue());
             current = current.getRight();
         }

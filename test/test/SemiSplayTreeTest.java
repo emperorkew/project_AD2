@@ -68,7 +68,7 @@ public class SemiSplayTreeTest {
         tree.add(5); // Pad: [10, 5] -> size 2
         // Actie: Search 5
         tree.search(5);
-        // Assertie: Omdat size < 3, mag er niks veranderen.
+        // Assertive: update size < 3, mag er niks veranderen.
         assertEquals(10, tree.root().getValue());
         assertEquals(5, tree.root().getLeft().getValue());
     }

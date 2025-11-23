@@ -20,15 +20,15 @@ import opgave.Node;
  * <p>
  * Both rotations return the new subtree root and maintain BST ordering invariants.
  *
- * @param <E> the type of element stored in this node, must be Comparable
+ * @param <E> the type of element stored in this node must be Comparable
  * @author Remco Marien
  */
 
 public class Top<E extends Comparable<E>> implements Node<E> {
 
     private final E value;
-    private Top<E> left; //null als geen left child by default
-    private Top<E> right; //null als geen right child by default
+    private Top<E> left; //null if not left child by default
+    private Top<E> right; //null if not right child by default
 
     public Top(E value) {
         this.value = value;

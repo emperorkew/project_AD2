@@ -161,49 +161,28 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemente
     }
 
     @Override
-    // Remove element e from the tree. Returns true if removed, false if not found.
     public boolean remove(E e) {
         if (e == null || root == null) return false;
 
-        List<Top<E>> path = new ArrayList<>(32);
-        Top<E> current = root;
-        Top<E> parent = null;
-        boolean isLeftChild = false;
+        FindResult<E> result = findNode(e);
 
-        while (current != null) {
-            int cmp = e.compareTo(current.getValue());
-
-            if (cmp == 0) break;
-
-            path.add(current);
-            parent = current;
-
-            if (cmp < 0) {
-                current = current.getLeft();
-                isLeftChild = true;
-            } else {
-                current = current.getRight();
-                isLeftChild = false;
-            }
-        }
-
-        if (current == null) {
-            semiSplayPath(path);
+        if (result.node() == null) {
+            semiSplayPath(result.path());
             return false;
         }
 
-        Top<E> replacement = deleteNode(current);
+        Top<E> replacement = deleteNode(result.node());
 
-        if (parent == null) {
+        if (result.parent() == null) {
             root = replacement;
-        } else if (isLeftChild) {
-            parent.setLeft(replacement);
+        } else if (result.isLeftChild()) {
+            result.parent().setLeft(replacement);
         } else {
-            parent.setRight(replacement);
+            result.parent().setRight(replacement);
         }
 
         decrementSize();
-        semiSplayPath(path);
+        semiSplayPath(result.path());
 
         return true;
     }
