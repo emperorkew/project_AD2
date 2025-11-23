@@ -290,7 +290,23 @@ public class SemiSplayTreeTest {
     @Test
     @DisplayName("Figuur 6 Scenario: Combinatie van Zig-Zag en Zig-Zig")
     void testFigure6Scenario() {
-        // 1. Maak de nodes aan
+        // ==========================================
+        // 1. SETUP: Bouw de boom (Figuur 6 Links)
+        // ==========================================
+        /*
+               75
+              /
+            60
+            /
+          30
+          /
+         4
+          \
+           13
+           /
+          7   <-- Target
+        */
+
         Top<Integer> n75 = new Top<>(75);
         Top<Integer> n60 = new Top<>(60);
         Top<Integer> n30 = new Top<>(30);
@@ -309,12 +325,52 @@ public class SemiSplayTreeTest {
 
         // Injecteer de root (hack om splay tijdens insert te omzeilen)
         tree.setRoot(n75);
+        // --- 2. PRE-CONDITION VERIFICATIE (Linkerkant Figuur 6) ---
+        // We lopen het pad af om te garanderen dat de pointers goed staan
+        Node<Integer> current = tree.root();
+
+        assertEquals(75, current.getValue(), "Root moet 75 zijn");
+        assertNotNull(current.getLeft());
+
+        current = current.getLeft();
+        assertEquals(60, current.getValue(), "Kind van 75 moet 60 zijn");
+        assertNotNull(current.getLeft());
+
+        current = current.getLeft();
+        assertEquals(30, current.getValue(), "Kind van 60 moet 30 zijn");
+        assertNotNull(current.getLeft());
+
+        current = current.getLeft();
+        assertEquals(4, current.getValue(), "Kind van 30 moet 4 zijn");
+        assertNotNull(current.getRight()); // Let op: Zig-Zag knik naar rechts
+
+        current = current.getRight();
+        assertEquals(13, current.getValue(), "Rechterkind van 4 moet 13 zijn");
+        assertNotNull(current.getLeft());
+
+        current = current.getLeft();
+        assertEquals(7, current.getValue(), "Linkerkind van 13 moet 7 zijn (Target)");
 
         // 3. Voer de search uit op de onderste node (7)
         boolean found = tree.search(7);
         assertTrue(found, "Element 7 moet gevonden worden");
 
         // 4. Verifieer de structuur exact zoals in Figuur 6 (rechts)
+        /*
+         * Verklaring transformatie:
+         * 1. Onderaan (4-13-7): Zig-Zag. 7 wordt sub-root. 4 links, 13 rechts.
+         * 2. Daarboven (60-30-7): Zig-Zig (Semi-Splay variant).
+         * De PARENT (30) roteert omhoog, niet de target (7).
+         * 3. Top (75-30): Lus stopt (step 2), dus 75 blijft root.
+         *
+               75
+              /
+            30
+           /  \
+          7    60
+         / \
+        4   13
+        */
 
         // De Root (75) blijft ongewijzigd omdat de loop stopt (step size 2)
         assertEquals(75, tree.root().getValue());
