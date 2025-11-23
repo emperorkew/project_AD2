@@ -2,6 +2,26 @@ package oplossing;
 
 import opgave.PriorityNode;
 
+/**
+ * A node implementation that extends Top with priority support for use in treaps and similar structures.
+ * <p>
+ * This class combines the BST node functionality of Top with a priority value, enabling
+ * data structures that maintain both BST ordering (by value) and heap ordering (by priority),
+ * such as treaps.
+ * <p>
+ * Key features:
+ * - Inherits all Top functionality (value storage, child references, rotations)
+ * - Adds mutable priority field for heap-based ordering
+ * - Implements PriorityNode interface
+ * - Overrides getLeft/getRight/rotateLeft/rotateRight to return PriorityTop types
+ * <p>
+ * The priority is typically used to maintain heap properties in the tree structure,
+ * while the value maintains BST properties.
+ *
+ * @param <E> the type of element stored in this node, must be Comparable
+ * @author Remco Marien
+ */
+
 public class PriorityTop<E extends Comparable<E>> extends Top<E> implements PriorityNode<E> {
 
     private long priority;

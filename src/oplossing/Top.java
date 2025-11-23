@@ -23,6 +23,7 @@ import opgave.Node;
  * @param <E> the type of element stored in this node, must be Comparable
  * @author Remco Marien
  */
+
 public class Top<E extends Comparable<E>> implements Node<E> {
 
     private final E value;
