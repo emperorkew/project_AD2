@@ -44,6 +44,11 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
         this.root = root;
     }
 
+    @Override
+    public Node<E> root() {
+        return root;
+    }
+
     protected void incrementSize() {
         size++;
     }
@@ -172,11 +177,6 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
         successor.setRight(node.getRight());
 
         return successor;
-    }
-
-    @Override
-    public Node<E> root() {
-        return root;
     }
 
     @Override
