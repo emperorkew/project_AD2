@@ -61,13 +61,27 @@ public class SearchTree<E extends Comparable<E>> implements opgave.SearchTree<E>
     }
 
     /**
+     * Estimates the height of the tree for pre-allocating collections.
+     * Uses log2(n) as baseline for balanced trees with bounds to handle edge cases.
+     *
+     * @return estimated height, minimum 8, maximum 64
+     */
+    private int estimateHeight() {
+        if (size == 0) return 8;
+        // For balanced tree: log2(n) ≈ log(n)/log(2)
+        // Add 50% margin for partially unbalanced trees
+        int estimated = (int) (Math.log(size + 1) / Math.log(2) * 1.5);
+        return Math.min(Math.max(estimated, 8), 64);
+    }
+
+    /**
      * Finds a node in the tree and returns traversal information.
      *
      * @param e the element to find
      * @return FindResult containing the node (or null if not found), parent, isLeftChild flag, and path
      */
     protected FindResult<E> findNode(E e) {
-        List<Top<E>> path = new ArrayList<>(32);
+        List<Top<E>> path = new ArrayList<>(estimateHeight());
         Top<E> current = root;
         Top<E> parent = null;
         boolean isLeftChild = false;
@@ -251,7 +265,9 @@ public class SearchTree<E extends Comparable<E>> implements opgave.SearchTree<E>
     protected static <E extends Comparable<E>, N extends Top<E>> List<E> inOrderTraversal(N root, int size) {
         List<E> result = new ArrayList<>(size);
         Top<E> current = root;
-        List<Top<E>> stack = new ArrayList<>(32);
+        // Estimate stack size based on tree size (log2(n) * 1.5, bounded between 8 and 64)
+        int stackCapacity = size == 0 ? 8 : Math.min(Math.max((int) (Math.log(size + 1) / Math.log(2) * 1.5), 8), 64);
+        List<Top<E>> stack = new ArrayList<>(stackCapacity);
 
         while (current != null || !stack.isEmpty()) {
             while (current != null) {
