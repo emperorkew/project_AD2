@@ -1,7 +1,6 @@
 package oplossing;
 
 import opgave.Node;
-import opgave.SearchTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +30,7 @@ import java.util.List;
  * @param <E> the type of elements maintained by this tree must be Comparable
  * @author Remco Marien
  */
-public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTree<E> {
+public class SearchTree<E extends Comparable<E>> implements opgave.SearchTree<E> {
 
     private int size;
     protected Top<E> root;
@@ -57,7 +56,7 @@ public class SearchTreeImplemented<E extends Comparable<E>> implements SearchTre
             boolean isLeftChild
     ) {}
 
-    public SearchTreeImplemented() {
+    public SearchTree() {
         this.size = 0;
     }
 

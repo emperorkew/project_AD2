@@ -29,7 +29,7 @@ import java.util.List;
  * @param <E> the type of elements maintained by this tree must be Comparable
  * @author Remco Marien
  */
-public class SemiSplayTree<E extends Comparable<E>> extends SearchTreeImplemented<E> {
+public class SemiSplayTree<E extends Comparable<E>> extends SearchTree<E> {
 
     public SemiSplayTree() {
         super();

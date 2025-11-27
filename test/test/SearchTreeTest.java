@@ -1,8 +1,6 @@
 package test;
 
-import opgave.SearchTree;
-import oplossing.SearchTreeImplemented;
-import oplossing.SemiSplayTree;
+import oplossing.SearchTree;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -11,13 +9,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SearchTreeImplementedTest {
+public class SearchTreeTest {
 
-    private SearchTreeImplemented<Integer> tree;
+    private SearchTree<Integer> tree;
 
     @BeforeEach
     void setUp() {
-        tree = new SearchTreeImplemented<>();
+        tree = new SearchTree<>();
     }
 
     // === Size Tests ===
@@ -339,7 +337,7 @@ public class SearchTreeImplementedTest {
     @Test
     @DisplayName("Should work with String type")
     void shouldWorkWithStringType() {
-        SearchTreeImplemented<String> stringTree = new SearchTreeImplemented<>();
+        SearchTree<String> stringTree = new SearchTree<>();
         stringTree.add("banana");
         stringTree.add("apple");
         stringTree.add("cherry");

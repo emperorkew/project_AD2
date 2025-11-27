@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Nested;
 public class Test {
 
     @Nested
-    class SearchTreeTests extends SearchTreeImplementedTest {
+    class SearchTreeTests extends SearchTreeTest {
         // All tests from SearchTreeImplementedTest
     }
 

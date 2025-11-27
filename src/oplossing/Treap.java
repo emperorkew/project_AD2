@@ -190,6 +190,6 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     @Override
     public List<E> values() {
-        return SearchTreeImplemented.inOrderTraversal(root, size);
+        return SearchTree.inOrderTraversal(root, size);
     }
 }
