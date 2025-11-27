@@ -5,7 +5,6 @@ import java.util.*;
 
 /**
  * Simple benchmark to compare tree implementations.
- * Run with: java -cp out test.Benchmark
  */
 public class Benchmark {
 
