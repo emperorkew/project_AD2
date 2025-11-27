@@ -471,6 +471,83 @@ public class MyFrequencyTreapTest {
         }
     }
 
+    // === Rotation Tests ===
+
+    /**
+     * Test that left rotate works correctly by doing a series of inserts
+     * that should trigger a left rotate.
+     */
+    @Test
+    @DisplayName("Left rotate is executed correctly on insert")
+    void testLeftRotateOnInsert() {
+        MyFrequencyTreap<Integer> treap = new MyFrequencyTreap<>();
+
+        // Add elements in ascending order
+        // This should trigger left rotates
+        for (int i = 1; i <= 10; i++) {
+            treap.add(i);
+            assertTrue(verifyHeapProperty(treap.root()),
+                    "Heap property violated after insert " + i);
+            assertTrue(verifyBSTProperty(treap.root()),
+                    "BST property violated after insert " + i);
+        }
+
+        assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), treap.values());
+    }
+
+    /**
+     * Test that right rotate works correctly by doing a series of inserts
+     * that should trigger a right rotate.
+     */
+    @Test
+    @DisplayName("Right rotate is executed correctly on insert")
+    void testRightRotateOnInsert() {
+        MyFrequencyTreap<Integer> treap = new MyFrequencyTreap<>();
+
+        // Add elements in descending order
+        // This should trigger right rotates
+        for (int i = 10; i >= 1; i--) {
+            treap.add(i);
+            assertTrue(verifyHeapProperty(treap.root()),
+                    "Heap property violated after insert " + i);
+            assertTrue(verifyBSTProperty(treap.root()),
+                    "BST property violated after insert " + i);
+        }
+
+        assertEquals(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), treap.values());
+    }
+
+    /**
+     * Test that rotations on delete work correctly by removing the root.
+     */
+    @Test
+    @DisplayName("Rotations on delete of root")
+    void testRotationsOnDeleteRoot() {
+        MyFrequencyTreap<Integer> treap = new MyFrequencyTreap<>();
+
+        // Build a tree
+        for (int i : List.of(50, 25, 75, 10, 30, 60, 90)) {
+            treap.add(i);
+        }
+
+        // Remove the root multiple times
+        while (!treap.isEmpty()) {
+            PriorityNode<Integer> root = treap.root();
+            int rootValue = root.getValue();
+
+            assertTrue(treap.remove(rootValue));
+
+            if (!treap.isEmpty()) {
+                assertTrue(verifyHeapProperty(treap.root()),
+                        "Heap property violated after delete of " + rootValue);
+                assertTrue(verifyBSTProperty(treap.root()),
+                        "BST property violated after delete of " + rootValue);
+            }
+        }
+
+        assertTrue(treap.isEmpty());
+    }
+
     // === Helper Methods ===
 
     private boolean verifyHeapProperty(PriorityNode<Integer> node) {
@@ -489,6 +566,31 @@ public class MyFrequencyTreapTest {
         }
 
         return verifyHeapProperty(left) && verifyHeapProperty(right);
+    }
+
+    /**
+     * Verifies the BST property: left < parent < right
+     */
+    private boolean verifyBSTProperty(PriorityNode<Integer> node) {
+        return verifyBSTProperty(node, null, null);
+    }
+
+    private boolean verifyBSTProperty(PriorityNode<Integer> node, Integer min, Integer max) {
+        if (node == null) {
+            return true;
+        }
+
+        int value = node.getValue();
+
+        if (min != null && value <= min) {
+            return false;
+        }
+        if (max != null && value >= max) {
+            return false;
+        }
+
+        return verifyBSTProperty(node.getLeft(), min, value) &&
+                verifyBSTProperty(node.getRight(), value, max);
     }
 
     private long findNodePriority(PriorityNode<Integer> node, int value) {
