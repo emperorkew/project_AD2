@@ -16,6 +16,20 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
         this.size = 0;
     }
 
+    /**
+     * Estimates the height of the tree for pre-allocating collections.
+     * Uses log2(n) as baseline for balanced trees with bounds to handle edge cases.
+     *
+     * @return estimated height, minimum 8, maximum 64
+     */
+    protected int estimateHeight() {
+        if (size == 0) return 8;
+        // For balanced tree: log2(n) ≈ log(n)/log(2)
+        // Add 50% margin for partially unbalanced trees
+        int estimated = (int) (Math.log(size + 1) / Math.log(2) * 1.5);
+        return Math.min(Math.max(estimated, 8), 64);
+    }
+
     @Override
     public int size() {
         return size;
@@ -50,8 +64,8 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             return true;
         }
 
-        // Track the path for bubble-up (capacity 32 covers trees up to ~4B nodes)
-        List<PriorityTop<E>> path = new ArrayList<>(32);
+        // Track the path for bubble-up with adaptive capacity
+        List<PriorityTop<E>> path = new ArrayList<>(estimateHeight());
         PriorityTop<E> current = root;
         boolean insertLeft = false;
 
@@ -140,34 +154,21 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             PriorityTop<E> l = current.getLeft();
             PriorityTop<E> r = current.getRight();
 
-            boolean goRight = (r == null) || (l != null && l.getPriority() > r.getPriority());
-            PriorityTop<E> newSubtreeRoot;
+            // Determine rotation direction: prefer child with higher priority
+            boolean rotateRight = (r == null) || (l != null && l.getPriority() > r.getPriority());
+            PriorityTop<E> newSubtreeRoot = rotateRight ? current.rotateRight() : current.rotateLeft();
 
-            if (goRight) {
-                newSubtreeRoot = current.rotateRight();
-                // Update parent link
-                if (parent == null) {
-                    root = newSubtreeRoot;
-                } else if (isLeftChild) {
-                    parent.setLeft(newSubtreeRoot);
-                } else {
-                    parent.setRight(newSubtreeRoot);
-                }
-                parent = newSubtreeRoot;
-                isLeftChild = false; // current is now right child of newSubtreeRoot
+            // Update parent link
+            if (parent == null) {
+                root = newSubtreeRoot;
+            } else if (isLeftChild) {
+                parent.setLeft(newSubtreeRoot);
             } else {
-                newSubtreeRoot = current.rotateLeft();
-                // Update parent link
-                if (parent == null) {
-                    root = newSubtreeRoot;
-                } else if (isLeftChild) {
-                    parent.setLeft(newSubtreeRoot);
-                } else {
-                    parent.setRight(newSubtreeRoot);
-                }
-                parent = newSubtreeRoot;
-                isLeftChild = true; // current is now left child of newSubtreeRoot
+                parent.setRight(newSubtreeRoot);
             }
+
+            parent = newSubtreeRoot;
+            isLeftChild = !rotateRight; // After right rotation, current becomes right child; after left rotation, left child
         }
 
         // Remove leaf node

@@ -291,7 +291,7 @@ public class SemiSplayTreeTest {
     @DisplayName("Figuur 6 Scenario: Combinatie van Zig-Zag en Zig-Zig")
     void testFigure6Scenario() {
         // ==========================================
-        // 1. SETUP: Bouw de boom (Figuur 6 Links)
+        // 1. SETUP: Bouw de boom (Figuur 6 uit cursus)
         // ==========================================
         /*
                75
@@ -325,8 +325,8 @@ public class SemiSplayTreeTest {
 
         // Injecteer de root (hack om splay tijdens insert te omzeilen)
         tree.setRoot(n75);
+
         // --- 2. PRE-CONDITION VERIFICATIE (Linkerkant Figuur 6) ---
-        // We lopen het pad af om te garanderen dat de pointers goed staan
         Node<Integer> current = tree.root();
 
         assertEquals(75, current.getValue(), "Root moet 75 zijn");
@@ -357,12 +357,6 @@ public class SemiSplayTreeTest {
 
         // 4. Verifieer de structuur exact zoals in Figuur 6 (rechts)
         /*
-         * Verklaring transformatie:
-         * 1. Onderaan (4-13-7): Zig-Zag. 7 wordt sub-root. 4 links, 13 rechts.
-         * 2. Daarboven (60-30-7): Zig-Zig (Semi-Splay variant).
-         * De PARENT (30) roteert omhoog, niet de target (7).
-         * 3. Top (75-30): Lus stopt (step 2), dus 75 blijft root.
-         *
                75
               /
             30

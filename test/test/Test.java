@@ -29,12 +29,7 @@ public class Test {
     }
 
     @Nested
-    class FrequencyTreapTests extends FrequencyTreapTest {
+    class MyFrequencyTreapTests extends MyFrequencyTreapTest {
         // All tests from FrequencyTreapTest
-    }
-
-    @Nested
-    class MyTreapTests extends MyTreapTest {
-        // All tests from MyTreapTest
     }
 }
