@@ -317,8 +317,8 @@ public class SemiSplayTreeTest {
         // 2. Bouw de boomstructuur exact na zoals in Figuur 6 (links)
         // Pad: 75 -> 60 -> 30 -> 4 -> 13 -> 7
 
-        n75.setLeft(n60);      // Root -> 60
-        n60.setLeft(n30);      // 60 -> 30 (Zig-Zig lijn begint)
+        n75.setLeft(n60);      // Root → 60
+        n60.setLeft(n30);      // 60 → 30 (Zig-Zig lijn begint)
         n30.setLeft(n4);       // 30 -> 4
         n4.setRight(n13);      // 4 -> 13 (Zig-Zag knik)
         n13.setLeft(n7);       // 13 -> 7 (Target)
@@ -379,7 +379,7 @@ public class SemiSplayTreeTest {
         assertEquals(7, n7_new.getValue(), "7 is omhoog gekomen door de Zig-Zag en nu kind van 30");
 
         // Niveau 3: Kinderen van 7 (Resultaat van de onderste Zig-Zag)
-        // Bij de Zig-Zag (4 -> 13 -> 7) wordt 7 de ouder van 4 en 13.
+        // Bij de Zig-Zag (4 → 13 → 7) wordt 7 de ouder van 4 en 13.
         assertEquals(4, n7_new.getLeft().getValue(), "4 moet links van 7 staan");
         assertEquals(13, n7_new.getRight().getValue(), "13 moet rechts van 7 staan");
     }

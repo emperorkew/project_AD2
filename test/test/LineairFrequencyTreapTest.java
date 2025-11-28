@@ -322,11 +322,11 @@ public class LineairFrequencyTreapTest {
         }
 
         // Create hot spots with different frequencies
-        for (int i = 0; i < 30; i++) treap.search(5);  // 31 total
-        for (int i = 0; i < 20; i++) treap.search(3);  // 21 total
-        for (int i = 0; i < 10; i++) treap.search(7);  // 11 total
+        for (int i = 0; i < 30; i++) treap.search(5);  // Total 31
+        for (int i = 0; i < 20; i++) treap.search(3);  // Total 21
+        for (int i = 0; i < 10; i++) treap.search(7);  // Total 11
 
-        // 5 should be root (highest priority)
+        // 5 should be root (the highest priority)
         assertEquals(5, treap.root().getValue());
         assertEquals(31, treap.root().getPriority());
 
@@ -355,7 +355,7 @@ public class LineairFrequencyTreapTest {
 
     /**
      * Test that left rotate works correctly by doing a series of inserts
-     * that should trigger a left rotate.
+     * that should trigger a left rotating.
      */
     @Test
     @DisplayName("Left rotate is executed correctly on insert")
@@ -377,7 +377,7 @@ public class LineairFrequencyTreapTest {
 
     /**
      * Test that right rotate works correctly by doing a series of inserts
-     * that should trigger a right rotate.
+     * that should trigger a right rotating.
      */
     @Test
     @DisplayName("Right rotate is executed correctly on insert")

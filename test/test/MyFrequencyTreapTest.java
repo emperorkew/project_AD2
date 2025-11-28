@@ -135,22 +135,22 @@ public class MyFrequencyTreapTest {
     void logarithmicScalingShowsDiminishingReturns() {
         treap.add(5);
 
-        // Search to get accessCount = 2 (priority = 1M)
+        // Search to get accessCount = 2 (priority = 1 M)
         treap.search(5);
         long priority2 = treap.root().getPriority();
 
-        // Search to get accessCount = 4 (priority = 2M)
+        // Search to get accessCount = 4 (priority = 2 M)
         treap.search(5);
         treap.search(5);
         long priority4 = treap.root().getPriority();
 
-        // Search to get accessCount = 8 (priority = 3M)
+        // Search to get accessCount = 8 (priority = 3 M)
         for (int i = 0; i < 4; i++) treap.search(5);
         long priority8 = treap.root().getPriority();
 
-        // Verify logarithmic increase: each doubling adds exactly 1M
-        long delta1 = priority4 - priority2; // Should be 1M
-        long delta2 = priority8 - priority4; // Should be 1M
+        // Verify logarithmic increase: each doubling adds exactly 1 M
+        long delta1 = priority4 - priority2; // Should be 1 M
+        long delta2 = priority8 - priority4; // Should be 1 M
 
         assertEquals(1_000_000, delta1);
         assertEquals(1_000_000, delta2);
@@ -206,7 +206,7 @@ public class MyFrequencyTreapTest {
             treap.search(5);
         }
 
-        // With logarithmic scaling, priority should be log2(1001) * 1M ≈ 9.97M
+        // With logarithmic scaling, the priority should be log2(1001) * 1M ≈ 9.97M
         // Much more moderate than linear 1001
         long priority = treap.root().getPriority();
 
@@ -415,7 +415,7 @@ public class MyFrequencyTreapTest {
         // 8 accesses -> accessCount=9, log2(9)≈3.17, priority≈3M
         for (int i = 0; i < 8; i++) treap.search(7);
 
-        // 5 should be root (highest priority)
+        // 5 should be root (the highest priority)
         assertEquals(5, treap.root().getValue());
 
         // Verify heap property ensures correct ordering
@@ -448,10 +448,10 @@ public class MyFrequencyTreapTest {
         }
 
         // Simulate Zipf distribution: element 1 accessed most, 2 half as much, etc.
-        for (int i = 0; i < 64; i++) treap.search(1);  // 65 total
-        for (int i = 0; i < 32; i++) treap.search(2);  // 33 total
-        for (int i = 0; i < 16; i++) treap.search(3);  // 17 total
-        for (int i = 0; i < 8; i++) treap.search(4);   // 9 total
+        for (int i = 0; i < 64; i++) treap.search(1);  // Total 65
+        for (int i = 0; i < 32; i++) treap.search(2);  // Total 33
+        for (int i = 0; i < 16; i++) treap.search(3);  // Total 17
+        for (int i = 0; i < 8; i++) treap.search(4);   // Total 9
 
         // With logarithmic scaling, differences are moderated:
         // 1: log2(65)≈6.02
@@ -475,7 +475,7 @@ public class MyFrequencyTreapTest {
 
     /**
      * Test that left rotate works correctly by doing a series of inserts
-     * that should trigger a left rotate.
+     * that should trigger a left rotating.
      */
     @Test
     @DisplayName("Left rotate is executed correctly on insert")
@@ -497,7 +497,7 @@ public class MyFrequencyTreapTest {
 
     /**
      * Test that right rotate works correctly by doing a series of inserts
-     * that should trigger a right rotate.
+     * that should trigger a right rotating.
      */
     @Test
     @DisplayName("Right rotate is executed correctly on insert")
