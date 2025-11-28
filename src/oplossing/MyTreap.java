@@ -10,10 +10,12 @@ package oplossing;
  * - Automatic aging: old data sinks to tree bottom without manual cleanup
  * <p>
  * Priority strategy:
- * - Newer items get HIGHER priority (via insertionCounter)
- * - Priority = insertionCounter → recent inserts stay near the root
+ * - Initial priority: insertionCounter (starts at 0, increments with each successful insertion)
+ * - Newer items get HIGHER priority (via incrementing insertionCounter)
+ * - Priority = insertionCounter at time of insertion → recent inserts stay near the root
  * - Old data automatically sinks to the bottom of the tree
  * - No random priorities: fully deterministic based on insertion order
+ * - Duplicate insertions do NOT increment counter (element already exists)
  * <p>
  * Performance optimizations:
  * - Reusable array for path tracking (zero GC pressure)

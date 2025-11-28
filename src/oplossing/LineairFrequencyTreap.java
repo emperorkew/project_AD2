@@ -5,7 +5,9 @@ package oplossing;
  * More frequently accessed nodes rise to the top of the tree.
  * <p>
  * Priority strategy:
+ * - Initial priority: 1 (new nodes start at priority 1)
  * - Priority increases linearly with each access (priority++)
+ * - Each search/add of existing element: priority += 1
  * - Frequently accessed nodes get proportionally higher priority
  * - Ideal for scenarios where access frequency strongly correlates with importance
  * <p>

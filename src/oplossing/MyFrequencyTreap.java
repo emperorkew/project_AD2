@@ -8,7 +8,9 @@ import java.util.Map;
  * Provides balanced performance between frequently and infrequently accessed nodes.
  * <p>
  * Priority calculation:
+ * - Initial priority: 0 (new nodes start at priority 0, representing log₂(1) = 0)
  * - Priority = log₂(accessCount) × 1,000,000
+ * - Each search/add of existing element increments access count, recalculates priority
  * - First accesses have high impact, then diminishing returns
  * - Prevents extreme dominance by hot nodes
  * <p>
@@ -217,7 +219,29 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
     @Override
     public boolean remove(E e) {
-        // Access counts for removed nodes will be garbage collected automatically
-        return super.remove(e);
+        if (e == null || root == null) return false;
+
+        // Find and store node reference before removal to clean up accessCounts
+        PriorityTop<E> current = root;
+        PriorityTop<E> nodeToRemove = null;
+
+        while (current != null) {
+            int cmp = e.compareTo(current.getValue());
+            if (cmp == 0) {
+                nodeToRemove = current;
+                break;
+            }
+            current = (cmp < 0) ? current.getLeft() : current.getRight();
+        }
+
+        // Perform actual tree removal
+        boolean removed = super.remove(e);
+
+        // Clean up accessCounts only if removal was successful
+        if (removed && nodeToRemove != null) {
+            accessCounts.remove(nodeToRemove);
+        }
+
+        return removed;
     }
 }

@@ -236,7 +236,11 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             }
 
             parent = newSubtreeRoot;
-            isLeftChild = !rotateRight; // After right rotation, current becomes right child; after left rotation, left child
+            // After rotation, update isLeftChild to reflect current's new position:
+            // - Right rotation: left child (L) becomes new root, current becomes L's right child → isLeftChild = false
+            // - Left rotation: right child (R) becomes new root, current becomes R's left child → isLeftChild = true
+            // Therefore: isLeftChild = !rotateRight
+            isLeftChild = !rotateRight;
         }
 
         // Remove leaf node
