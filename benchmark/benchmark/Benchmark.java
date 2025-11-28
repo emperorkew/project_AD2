@@ -105,6 +105,7 @@ public class Benchmark {
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
         long[] myFreqTimes = new long[RUNS];
+        long[] myTreapTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             // Setup trees
@@ -113,6 +114,7 @@ public class Benchmark {
             Treap<Integer> treap = new Treap<>();
             LineairFrequencyTreap<Integer> freq = new LineairFrequencyTreap<>();
             MyFrequencyTreap<Integer> myFreq = new MyFrequencyTreap<>();
+            MyTreap<Integer> myTreap = new MyTreap<>();
 
             for (int i = 0; i < OPERATIONS; i++) {
                 bst.add(i);
@@ -120,6 +122,7 @@ public class Benchmark {
                 treap.add(i);
                 freq.add(i);
                 myFreq.add(i);
+                myTreap.add(i);
             }
 
             // Benchmark searches
@@ -142,6 +145,10 @@ public class Benchmark {
             start = System.nanoTime();
             for (int key : searchKeys) myFreq.search(key);
             myFreqTimes[run] = System.nanoTime() - start;
+
+            start = System.nanoTime();
+            for (int key : searchKeys) myTreap.search(key);
+            myTreapTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
@@ -149,6 +156,7 @@ public class Benchmark {
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
         printResults("MyFrequencyTreap", myFreqTimes);
+        printResults("MyTreap (time-based)", myTreapTimes);
         System.out.println();
     }
 
@@ -164,6 +172,7 @@ public class Benchmark {
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
         long[] myFreqTimes = new long[RUNS];
+        long[] myTreapTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             // Setup trees
@@ -172,6 +181,7 @@ public class Benchmark {
             Treap<Integer> treap = new Treap<>();
             LineairFrequencyTreap<Integer> freq = new LineairFrequencyTreap<>();
             MyFrequencyTreap<Integer> myFreq = new MyFrequencyTreap<>();
+            MyTreap<Integer> myTreap = new MyTreap<>();
 
             for (int i = 0; i < OPERATIONS; i++) {
                 bst.add(i);
@@ -179,6 +189,7 @@ public class Benchmark {
                 treap.add(i);
                 freq.add(i);
                 myFreq.add(i);
+                myTreap.add(i);
             }
 
             // Benchmark removes
@@ -201,6 +212,10 @@ public class Benchmark {
             start = System.nanoTime();
             for (int key : removeKeys) myFreq.remove(key);
             myFreqTimes[run] = System.nanoTime() - start;
+
+            start = System.nanoTime();
+            for (int key : removeKeys) myTreap.remove(key);
+            myTreapTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
@@ -208,6 +223,7 @@ public class Benchmark {
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
         printResults("MyFrequencyTreap", myFreqTimes);
+        printResults("MyTreap (time-based)", myTreapTimes);
         System.out.println();
     }
 
@@ -221,6 +237,7 @@ public class Benchmark {
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
         long[] myFreqTimes = new long[RUNS];
+        long[] myTreapTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             rnd = new Random(42); // Reset for consistency
@@ -292,6 +309,20 @@ public class Benchmark {
                 else myFreq.remove(key);
             }
             myFreqTimes[run] = System.nanoTime() - start;
+
+            rnd = new Random(42);
+
+            // MyTreap (time-based)
+            MyTreap<Integer> myTreap = new MyTreap<>();
+            start = System.nanoTime();
+            for (int i = 0; i < OPERATIONS; i++) {
+                int op = rnd.nextInt(3);
+                int key = rnd.nextInt(OPERATIONS / 2);
+                if (op == 0) myTreap.add(key);
+                else if (op == 1) myTreap.search(key);
+                else myTreap.remove(key);
+            }
+            myTreapTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
@@ -299,6 +330,7 @@ public class Benchmark {
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
         printResults("MyFrequencyTreap", myFreqTimes);
+        printResults("MyTreap (time-based)", myTreapTimes);
         System.out.println();
     }
 

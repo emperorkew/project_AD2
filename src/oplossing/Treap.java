@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * A Treap (Tree + Heap) data structure that combines properties of binary search trees and heaps.
+ * A Treap (Tree and Heap) data structure that combines properties of binary search trees and heaps.
  * <p>
  * A treap maintains two properties simultaneously:
  * 1. BST property: For any node, all values in the left subtree are smaller, all values in the right subtree are larger
