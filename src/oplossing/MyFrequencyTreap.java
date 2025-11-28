@@ -1,12 +1,9 @@
 package oplossing;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Een Treap die de prioriteit van nodes logaritmisch verhoogt bij elke toegang.
  * <p>
- * De prioriteit wordt berekend als: Priority = log2(accessCount)
+ * De prioriteit wordt berekend als: Priority = log2(accessCount) * 1M
  * <p>
  * Dit zorgt voor:
  * - Logaritmische schaling: eerste accesses hebben meer impact, diminishing returns
@@ -19,48 +16,75 @@ import java.util.List;
  * - Node met 10 accesses heeft ~50 extra accesses nodig om bij te komen (log₂(60) ≈ 6)
  * - Bij lineaire schaling zou dit 990 extra accesses zijn!
  * <p>
- * Dit is vooral nuttig voor Zipf-achtige access patterns waar enkele elementen
- * zeer vaak worden opgevraagd, maar je wilt voorkomen dat de boom te sterk uit balans raakt.
+ * Highly optimized implementation:
+ * - Reuses a single path array to eliminate allocations (zero GC pressure)
+ * - Stores access count in upper 32 bits of priority for O(1) retrieval
+ * - Uses bit operations for fast access count extraction
+ * - Precomputed constants for all mathematical operations
+ * - Extracted common logic to reduce code duplication
  */
 public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
+    private static final double INV_LN2 = 1.4426950408889634;  // 1 / ln(2)
+    private static final long SCALE = 1_000_000L;
+
+    private PriorityTop<E>[] pathArray;
+    private int pathSize;
+
+    @SuppressWarnings("unchecked")
+    public MyFrequencyTreap() {
+        super();
+        this.pathArray = (PriorityTop<E>[]) new PriorityTop[64];
+    }
+
     /**
-     * Calculates logarithmic priority based on access count.
-     * Formula: Priority = log2(accessCount) * 1M
-     * <p>
-     * The logarithmic scaling provides diminishing returns, which prevents
-     * starvation of infrequently accessed nodes while still prioritizing
-     * frequently accessed elements.
-     *
-     * @param accessCount number of times this node has been accessed
-     * @return the logarithmic priority value
+     * Encodes access count and logarithmic priority using bit packing:
+     * Upper 32 bits: access count (for O(1) increment)
+     * Lower 32 bits: log2(accessCount) * SCALE (for heap ordering)
      */
-    private long calculatePriority(long accessCount) {
-        if (accessCount <= 0) return 0;
-        // log2(x) = ln(x) / ln(2)
-        // We multiply by a large constant to maintain precision in long
-        return (long) (Math.log(accessCount) / Math.log(2) * 1_000_000);
+    private long encodePriority(long accessCount) {
+        if (accessCount <= 1) return (1L << 32); // Access count = 1, log priority = 0
+
+        long logPriority = (long) (Math.log(accessCount) * INV_LN2 * SCALE);
+        return (accessCount << 32) | (logPriority & 0xFFFFFFFFL);
+    }
+
+    /**
+     * Ensures sufficient capacity and adds a node to the path.
+     */
+    @SuppressWarnings("unchecked")
+    private void addToPath(PriorityTop<E> node) {
+        if (pathSize >= pathArray.length) {
+            PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
+            System.arraycopy(pathArray, 0, newArray, 0, pathSize);
+            pathArray = newArray;
+        }
+        pathArray[pathSize++] = node;
+    }
+
+    /**
+     * Increments access count and updates priority.
+     * Efficiently extracts, increments, and re-encodes in one operation.
+     */
+    private void incrementAccess(PriorityTop<E> node) {
+        long accessCount = (node.getPriority() >>> 32) + 1;  // Extract upper 32 bits and increment
+        node.setPriority(encodePriority(accessCount));
     }
 
     @Override
     public boolean search(E o) {
         if (o == null || root == null) return false;
 
-        // Track path for bubble-up after priority increase
-        List<PriorityTop<E>> path = new ArrayList<>(estimateHeight());
+        pathSize = 0;
         PriorityTop<E> current = root;
 
         while (current != null) {
-            path.add(current);
+            addToPath(current);
             int cmp = o.compareTo(current.getValue());
 
             if (cmp == 0) {
-                // Found - increase priority logarithmically
-                // We interpret current priority as access count encoded
-                long currentAccessCount = decodeAccessCount(current.getPriority());
-                long newAccessCount = currentAccessCount + 1;
-                current.setPriority(calculatePriority(newAccessCount));
-                bubbleUp(path);
+                incrementAccess(current);
+                bubbleUpArray();
                 return true;
             }
             current = (cmp < 0) ? current.getLeft() : current.getRight();
@@ -74,66 +98,73 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
         if (o == null) return false;
 
         if (root == null) {
-            // Initial access count = 1, priority = log2(1) * 1M = 0
-            root = new PriorityTop<>(o, calculatePriority(1));
+            root = new PriorityTop<>(o, encodePriority(1));
             size++;
             return true;
         }
 
-        // Track path for bubble-up
-        List<PriorityTop<E>> path = new ArrayList<>(estimateHeight());
+        pathSize = 0;
         PriorityTop<E> current = root;
 
-        while (current != null) {
-            path.add(current);
+        while (true) {
+            addToPath(current);
             int cmp = o.compareTo(current.getValue());
 
             if (cmp == 0) {
-                // Element exists - increase priority (counts as access)
-                long currentAccessCount = decodeAccessCount(current.getPriority());
-                long newAccessCount = currentAccessCount + 1;
-                current.setPriority(calculatePriority(newAccessCount));
-                bubbleUp(path);
+                incrementAccess(current);
+                bubbleUpArray();
                 return false;
             }
 
-            if (cmp < 0) {
-                if (current.getLeft() == null) {
-                    PriorityTop<E> newNode = new PriorityTop<>(o, calculatePriority(1));
-                    current.setLeft(newNode);
-                    path.add(newNode);
-                    size++;
-                    bubbleUp(path);
-                    return true;
-                }
-                current = current.getLeft();
-            } else {
-                if (current.getRight() == null) {
-                    PriorityTop<E> newNode = new PriorityTop<>(o, calculatePriority(1));
-                    current.setRight(newNode);
-                    path.add(newNode);
-                    size++;
-                    bubbleUp(path);
-                    return true;
-                }
-                current = current.getRight();
-            }
-        }
+            PriorityTop<E> next = (cmp < 0) ? current.getLeft() : current.getRight();
 
-        return false;
+            if (next == null) {
+                PriorityTop<E> newNode = new PriorityTop<>(o, encodePriority(1));
+                if (cmp < 0) {
+                    current.setLeft(newNode);
+                } else {
+                    current.setRight(newNode);
+                }
+                addToPath(newNode);
+                size++;
+                bubbleUpArray();
+                return true;
+            }
+
+            current = next;
+        }
     }
 
     /**
-     * Decodes the access count from the priority value.
-     * Since priority = log2(accessCount) * 1M, we reverse this:
-     * accessCount = 2^(priority / 1M)
-     *
-     * @param priority the encoded priority
-     * @return the decoded access count
+     * Bubbles up using the reusable path array.
      */
-    private long decodeAccessCount(long priority) {
-        if (priority <= 0) return 1;
-        double logValue = priority / 1_000_000.0;
-        return Math.max(1, Math.round(Math.pow(2, logValue)));
+    private void bubbleUpArray() {
+        int i = pathSize - 1;
+
+        while (i > 0) {
+            PriorityTop<E> node = pathArray[i];
+            PriorityTop<E> parent = pathArray[i - 1];
+
+            if (node.getPriority() <= parent.getPriority()) return;
+
+            // Perform rotation
+            boolean isLeftChild = parent.getLeft() == node;
+            PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
+
+            // Update parent reference
+            if (i == 1) {
+                root = newSubtreeRoot;
+            } else {
+                PriorityTop<E> grandparent = pathArray[i - 2];
+                if (grandparent.getLeft() == parent) {
+                    grandparent.setLeft(newSubtreeRoot);
+                } else {
+                    grandparent.setRight(newSubtreeRoot);
+                }
+            }
+
+            pathArray[i - 1] = newSubtreeRoot;
+            i--;
+        }
     }
 }

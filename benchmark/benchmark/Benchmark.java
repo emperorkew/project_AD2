@@ -43,6 +43,8 @@ public class Benchmark {
         long[] splayTimes = new long[RUNS];
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
+        long[] myFreqTimes = new long[RUNS];
+        long[] myTreapTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             // SearchTreeImplemented
@@ -68,12 +70,26 @@ public class Benchmark {
             start = System.nanoTime();
             for (int i = 0; i < OPERATIONS; i++) freq.add(i);
             freqTimes[run] = System.nanoTime() - start;
+
+            // MyFrequencyTreap
+            MyFrequencyTreap<Integer> myFreq = new MyFrequencyTreap<>();
+            start = System.nanoTime();
+            for (int i = 0; i < OPERATIONS; i++) myFreq.add(i);
+            myFreqTimes[run] = System.nanoTime() - start;
+
+            // MyTreap (time-based)
+            MyTreap<Integer> myTreap = new MyTreap<>();
+            start = System.nanoTime();
+            for (int i = 0; i < OPERATIONS; i++) myTreap.add(i);
+            myTreapTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
         printResults("SemiSplayTree", splayTimes);
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
+        printResults("MyFrequencyTreap", myFreqTimes);
+        printResults("MyTreap (time-based)", myTreapTimes);
         System.out.println();
     }
 
@@ -88,6 +104,7 @@ public class Benchmark {
         long[] splayTimes = new long[RUNS];
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
+        long[] myFreqTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             // Setup trees
@@ -95,12 +112,14 @@ public class Benchmark {
             SemiSplayTree<Integer> splay = new SemiSplayTree<>();
             Treap<Integer> treap = new Treap<>();
             LineairFrequencyTreap<Integer> freq = new LineairFrequencyTreap<>();
+            MyFrequencyTreap<Integer> myFreq = new MyFrequencyTreap<>();
 
             for (int i = 0; i < OPERATIONS; i++) {
                 bst.add(i);
                 splay.add(i);
                 treap.add(i);
                 freq.add(i);
+                myFreq.add(i);
             }
 
             // Benchmark searches
@@ -119,12 +138,17 @@ public class Benchmark {
             start = System.nanoTime();
             for (int key : searchKeys) freq.search(key);
             freqTimes[run] = System.nanoTime() - start;
+
+            start = System.nanoTime();
+            for (int key : searchKeys) myFreq.search(key);
+            myFreqTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
         printResults("SemiSplayTree", splayTimes);
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
+        printResults("MyFrequencyTreap", myFreqTimes);
         System.out.println();
     }
 
@@ -139,6 +163,7 @@ public class Benchmark {
         long[] splayTimes = new long[RUNS];
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
+        long[] myFreqTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             // Setup trees
@@ -146,12 +171,14 @@ public class Benchmark {
             SemiSplayTree<Integer> splay = new SemiSplayTree<>();
             Treap<Integer> treap = new Treap<>();
             LineairFrequencyTreap<Integer> freq = new LineairFrequencyTreap<>();
+            MyFrequencyTreap<Integer> myFreq = new MyFrequencyTreap<>();
 
             for (int i = 0; i < OPERATIONS; i++) {
                 bst.add(i);
                 splay.add(i);
                 treap.add(i);
                 freq.add(i);
+                myFreq.add(i);
             }
 
             // Benchmark removes
@@ -170,12 +197,17 @@ public class Benchmark {
             start = System.nanoTime();
             for (int key : removeKeys) freq.remove(key);
             freqTimes[run] = System.nanoTime() - start;
+
+            start = System.nanoTime();
+            for (int key : removeKeys) myFreq.remove(key);
+            myFreqTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
         printResults("SemiSplayTree", splayTimes);
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
+        printResults("MyFrequencyTreap", myFreqTimes);
         System.out.println();
     }
 
@@ -188,6 +220,7 @@ public class Benchmark {
         long[] splayTimes = new long[RUNS];
         long[] treapTimes = new long[RUNS];
         long[] freqTimes = new long[RUNS];
+        long[] myFreqTimes = new long[RUNS];
 
         for (int run = 0; run < RUNS; run++) {
             rnd = new Random(42); // Reset for consistency
@@ -245,12 +278,27 @@ public class Benchmark {
                 else freq.remove(key);
             }
             freqTimes[run] = System.nanoTime() - start;
+
+            rnd = new Random(42);
+
+            // MyFrequencyTreap
+            MyFrequencyTreap<Integer> myFreq = new MyFrequencyTreap<>();
+            start = System.nanoTime();
+            for (int i = 0; i < OPERATIONS; i++) {
+                int op = rnd.nextInt(3);
+                int key = rnd.nextInt(OPERATIONS / 2);
+                if (op == 0) myFreq.add(key);
+                else if (op == 1) myFreq.search(key);
+                else myFreq.remove(key);
+            }
+            myFreqTimes[run] = System.nanoTime() - start;
         }
 
         printResults("SearchTreeImplemented", bstTimes);
         printResults("SemiSplayTree", splayTimes);
         printResults("Treap", treapTimes);
         printResults("LineairFrequencyTreap", freqTimes);
+        printResults("MyFrequencyTreap", myFreqTimes);
         System.out.println();
     }
 
