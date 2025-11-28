@@ -26,7 +26,7 @@ import java.util.List;
  * Space complexity:
  * - O(n) for the tree structure
  * - O(1) auxiliary space for search, add, and remove (iterative approach)
- * - O(n) auxiliary space for values() - O(n) for result list + O(h) for stack where h is tree height
+ * - O(n) auxiliary space for values() - O(n) for a result list + O(h) for stack where h is tree height
  *
  * @param <E> the type of elements maintained by this tree must be Comparable
  * @author Remco Marien
@@ -63,7 +63,7 @@ public class SearchTree<E extends Comparable<E>> implements opgave.SearchTree<E>
 
     /**
      * Estimates the height of the tree for pre-allocating collections.
-     * Uses log2(n) as baseline for balanced trees with bounds to handle edge cases.
+     * Uses log2(n) as a baseline for balanced trees with bounds to handle edge cases.
      *
      * @return estimated height, minimum 8, maximum 64
      */

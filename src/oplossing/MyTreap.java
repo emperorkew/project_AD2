@@ -7,7 +7,7 @@ package oplossing;
  * This implementation is optimized for log-like data and monitoring scenarios:
  * - Continuously adding new entries with increasing timestamps
  * - Primarily searching recent data (recent logs, monitoring, sliding window)
- * - Automatic aging: old data sinks to tree bottom without manual cleanup
+ * - Automatic aging: old data sinks to tree bottom without a manual cleanup
  * <p>
  * Priority strategy:
  * - Initial priority: insertionCounter (starts at 0, increments with each successful insertion)
@@ -97,7 +97,7 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
         // Reset path tracking
         pathSize = 0;
 
-        // Find insertion point
+        // Find the insertion point
         PriorityTop<E> current = root;
         boolean insertLeft = false;
 
@@ -128,7 +128,7 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
     }
 
     /**
-     * Add node to path with inline capacity check.
+     * Add a node to a path with an inline capacity check.
      */
     private void addToPath(PriorityTop<E> node) {
         if (pathSize >= pathArray.length) {
@@ -141,7 +141,7 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
     }
 
     /**
-     * Bubble up using array-based path (optimized version).
+     * Bubble up using an array-based path (optimized version).
      */
     private void bubbleUpArray() {
         for (int i = pathSize - 1; i > 0; i--) {

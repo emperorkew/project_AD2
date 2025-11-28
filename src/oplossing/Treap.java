@@ -48,7 +48,7 @@ import java.util.Random;
  * - Supports rotation operations for heap property maintenance
  * <p>
  * Optimizations:
- * - Reusable path array eliminates ArrayList allocations
+ * - a Reusable path array eliminates ArrayList allocations
  * - Direct array access is faster than ArrayList.get()
  * - Inline capacity checks with bit shifts
  * - Early termination in bubble-up when heap property satisfied
@@ -76,7 +76,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     /**
      * Creates a new Treap with a fixed seed for deterministic behavior in tests.
-     * Seed 205 produces expected test structure: 50 as root with buildInitialTreeImage1.
+     * Seed 205 produces the expected test structure: 50 as root with buildInitialTreeImage1.
      */
     public Treap() {
         this(205);
@@ -96,7 +96,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     }
 
     /**
-     * Add node to path with inline capacity check.
+     * Add a node to a path with an inline capacity check.
      */
     @SuppressWarnings("unchecked")
     private void addToPath(PriorityTop<E> node) {
@@ -174,7 +174,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     }
 
     /**
-     * Bubble up using array-based path.
+     * Bubble up using an array-based path.
      */
     private void bubbleUpArray() {
         for (int i = pathSize - 1; i > 0; i--) {
@@ -232,7 +232,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             PriorityTop<E> l = current.getLeft();
             PriorityTop<E> r = current.getRight();
 
-            // Determine rotation direction: prefer child with higher priority
+            // Determine a rotation direction: prefer child with higher priority
             boolean rotateRight = (r == null) || (l != null && l.getPriority() > r.getPriority());
             PriorityTop<E> newSubtreeRoot = rotateRight ? current.rotateRight() : current.rotateLeft();
 

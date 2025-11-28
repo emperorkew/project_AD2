@@ -7,7 +7,7 @@ package oplossing;
  * Priority strategy:
  * - Initial priority: 1 (new nodes start at priority 1)
  * - Priority increases linearly with each access (priority++)
- * - Each search/add of existing element: priority += 1
+ * - Each search/add of an existing element: priority += 1
  * - Frequently accessed nodes get proportionally higher priority
  * - Ideal for scenarios where access frequency strongly correlates with importance
  * <p>
@@ -24,7 +24,7 @@ package oplossing;
  * - O(n) auxiliary space for values()
  * <p>
  * Highly optimized implementation:
- * - Reuses a single path array to eliminate allocations (zero GC pressure)
+ * - Reuses a single path array to remove allocations (zero GC pressure)
  * - Inlined capacity checks for better performance
  * - Minimized method calls and redundant operations
  * - Bit shift for array doubling (x << 1 instead of x * 2)
@@ -32,9 +32,9 @@ package oplossing;
  * Use cases:
  * - Caching with strong locality (80/20 rule)
  * - Hot-spot optimization where few elements dominate access patterns
- * - Scenarios where recent AND frequent access both matter
+ * - Scenarios where recent AND frequent access both matters
  * <p>
- * Trade-offs vs logarithmic frequency:
+ * Trade-offs vs. logarithmic frequency:
  * - Pro: Simple linear scaling, very hot nodes become extremely accessible
  * - Con: Can cause extreme imbalance with skewed access patterns
  * - Con: Less-accessed nodes may become unreachable in pathological cases
@@ -163,7 +163,7 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
                 }
             }
 
-            // Update path for next iteration
+            // Update path for the next iteration
             pathArray[i - 1] = newSubtreeRoot;
             i--;
         }

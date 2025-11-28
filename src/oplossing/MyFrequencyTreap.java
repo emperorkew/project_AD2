@@ -10,7 +10,7 @@ import java.util.Map;
  * Priority calculation:
  * - Initial priority: 0 (new nodes start at priority 0, representing log₂(1) = 0)
  * - Priority = log₂(accessCount) × 1,000,000
- * - Each search/add of existing element increments access count, recalculates priority
+ * - Each search/add of an existing element increments access count, recalculates priority
  * - First accesses have high impact, then diminishing returns
  * - Prevents extreme dominance by hot nodes
  * <p>
@@ -36,11 +36,11 @@ import java.util.Map;
  * Comparison example:
  * - Node with 1000 accesses: log₂(1000) ≈ 10 (priority ~10M)
  * - Node with 10 accesses: log₂(10) ≈ 3.3 (priority ~3.3M)
- * - To match priority, node needs ~50 more accesses (log₂(60) ≈ 6)
+ * - To match priority, the node needs ~50 more accesses (log₂(60) ≈ 6)
  * - With linear scaling, it would need 990 more accesses!
  * <p>
  * Highly optimized implementation:
- * - Reuses a single path array to eliminate allocations (zero GC pressure)
+ * - Reuses a single path array to remove allocations (zero GC pressure)
  * - IdentityHashMap for O(1) access count lookups (reference equality only)
  * - Precomputed log values for common access counts (powers of 2: 1, 2, 4, 8, 16, 32, 64, 128, 256)
  * - Fast path for powers of 2: bit manipulation instead of Math.log()
@@ -51,7 +51,7 @@ import java.util.Map;
  * - Scenarios with Zipf-like distributions (web caching, word frequency)
  * - When you want frequency-based optimization without extreme imbalance
  * <p>
- * Trade-offs vs linear frequency:
+ * Trade-offs vs. linear frequency:
  * - Pro: Better balance, no starvation, more predictable performance
  * - Pro: Extremely hot nodes don't monopolize the tree structure
  * - Con: Slightly more complex priority calculation
@@ -159,7 +159,7 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
         if (o == null) return false;
 
         if (root == null) {
-            root = new PriorityTop<>(o, 0); // Priority 0 for new node
+            root = new PriorityTop<>(o, 0); // Priority 0 for a new node
             accessCounts.put(root, 1L); // Access count starts at 1
             size++;
             return true;
@@ -181,7 +181,7 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
             PriorityTop<E> next = (cmp < 0) ? current.getLeft() : current.getRight();
 
             if (next == null) {
-                PriorityTop<E> newNode = new PriorityTop<>(o, 0); // Priority 0 for new node
+                PriorityTop<E> newNode = new PriorityTop<>(o, 0); // Priority 0 for a new node
                 accessCounts.put(newNode, 1L); // Access count starts at 1
                 if (cmp < 0) {
                     current.setLeft(newNode);
