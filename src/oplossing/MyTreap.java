@@ -1,105 +1,187 @@
 package oplossing;
 
 /**
- * Tijdgestuurde Treap: "recent toegevoegd is het belangrijkst"
+ * Time-based Treap: "recently added is most important"
+ * A Treap where insertion time determines priority - newer elements are more accessible.
  * <p>
- * Deze implementatie is geoptimaliseerd voor log-achtige data en monitoring scenarios:
- * - Constant nieuwe entries toevoegen met stijgende timestamps
- * - Vooral zoeken in de nieuwste data (recent logs, monitoring, sliding window)
+ * This implementation is optimized for log-like data and monitoring scenarios:
+ * - Continuously adding new entries with increasing timestamps
+ * - Primarily searching recent data (recent logs, monitoring, sliding window)
+ * - Automatic aging: old data sinks to tree bottom without manual cleanup
  * <p>
- * Priority-strategie:
- * - Nieuwere items krijgen HOGERE priority (via insertionCounter)
- * - Priority = -insertionTime → recente inserts komen dicht bij de root
- * - Oude data zakt automatisch naar beneden in de boom
+ * Priority strategy:
+ * - Newer items get HIGHER priority (via insertionCounter)
+ * - Priority = insertionCounter → recent inserts stay near the root
+ * - Old data automatically sinks to the bottom of the tree
+ * - No random priorities: fully deterministic based on insertion order
  * <p>
- * Voordelen:
- * - Recente elementen zijn O(log n) maar meestal veel sneller bereikbaar
- * - Ideaal voor "laatste N elementen" queries
- * - Ideaal voor "recentste groter dan X" queries
- * - Sliding window operations zijn zeer efficiënt
- * - Oude rommel heeft geen negatieve invloed op performance
+ * Performance optimizations:
+ * - Reusable array for path tracking (zero GC pressure)
+ * - Inline capacity checks with bit shifts (x << 1 instead of x * 2)
+ * - Direct array access instead of ArrayList
+ * - Optimized bubble-up with early termination
+ * <p>
+ * Benefits:
+ * - Recent elements are O(log n) but usually much faster to access
+ * - Ideal for "last N elements" queries
+ * - Ideal for "most recent greater than X" queries
+ * - Sliding window operations are very efficient
+ * - Old data has no negative impact on performance
+ * - Predictable: no random behavior, easier to debug
  * <p>
  * Use cases:
- * - Log monitoring en analyse
- * - Time-series data met focus op recente waarden
- * - Event streams met tijdelijke relevantie
- * - Cache-achtige structuren waar nieuw = belangrijk
+ * - Log monitoring and analysis (recent errors most important)
+ * - Time-series data with focus on recent values (stock tickers, sensor data)
+ * - Event streams with temporal relevance (news feeds, social media)
+ * - Cache-like structures where new = important (LRU-like with treap benefits)
+ * - Sliding window algorithms (maintain last N items efficiently)
+ * <p>
+ * Trade-offs:
+ * - Pro: Extremely fast for recent data access
+ * - Pro: Deterministic behavior (no randomness)
+ * - Pro: Automatic aging without manual eviction
+ * - Con: Old data becomes harder to access over time
+ * - Con: Not suitable if all data should remain equally accessible
+ *
+ * @param <E> the type of elements maintained by this treap must be Comparable
+ * @author Remco Marien
  */
-public class
-MyTreap<E extends Comparable<E>> extends Treap<E> {
+public class MyTreap<E extends Comparable<E>> extends Treap<E> {
 
     /**
-     * Globale insertion counter - stijgt met elke insert.
-     * Gebruikt als priority: hogere waarde = recenter = hogere priority in max-heap.
+     * Global insertion counter - increments with each insert.
+     * Used as priority: higher value = more recent = higher priority in max-heap.
      */
     private long insertionCounter;
 
+    /**
+     * Reusable array for path tracking - prevents ArrayList allocations.
+     */
+    private PriorityTop<E>[] pathArray;
+    private int pathSize;
+
+    @SuppressWarnings("unchecked")
     public MyTreap() {
         super();
         this.insertionCounter = 0;
+        this.pathArray = (PriorityTop<E>[]) new PriorityTop[16];
+        this.pathSize = 0;
     }
 
     /**
-     * Constructor met custom seed voor deterministische tests.
+     * Constructor with custom seed for deterministic tests.
+     * Note: This constructor is preserved for testing but the seed is not used
+     * since time-based priority is deterministic by design.
      */
+    @SuppressWarnings("unchecked")
     public MyTreap(long seed) {
         super(seed);
         this.insertionCounter = 0;
+        this.pathArray = (PriorityTop<E>[]) new PriorityTop[16];
+        this.pathSize = 0;
     }
 
     @Override
     public boolean add(E o) {
         if (o == null) return false;
 
-        // Genereer priority: hogere counter = recenter = hogere priority
-        long priority = insertionCounter++;
-
         if (root == null) {
-            root = new PriorityTop<>(o, priority);
+            // Generate priority: higher counter = more recent = higher priority
+            root = new PriorityTop<>(o, insertionCounter++);
             size++;
             return true;
         }
 
-        // Standaard treap insertion met gegenereerde priority
-        java.util.List<PriorityTop<E>> path = new java.util.ArrayList<>(estimateHeight());
+        // Reset path tracking
+        pathSize = 0;
+
+        // Find insertion point
         PriorityTop<E> current = root;
         boolean insertLeft = false;
 
         while (current != null) {
             int cmp = o.compareTo(current.getValue());
-            if (cmp == 0) return false; // Element bestaat al
+            if (cmp == 0) return false; // Element already exists - don't increment counter
 
-            path.add(current);
+            addToPath(current);
             insertLeft = cmp < 0;
             current = insertLeft ? current.getLeft() : current.getRight();
         }
 
-        // Insert nieuwe node met time-based priority
-        PriorityTop<E> newNode = new PriorityTop<>(o, priority);
-        PriorityTop<E> parent = path.get(path.size() - 1);
+        // Element is new - now increment counter and generate priority
+        // Insert new node with time-based priority
+        PriorityTop<E> newNode = new PriorityTop<>(o, insertionCounter++);
+        PriorityTop<E> parent = pathArray[pathSize - 1];
         if (insertLeft) {
             parent.setLeft(newNode);
         } else {
             parent.setRight(newNode);
         }
-        path.add(newNode);
+        addToPath(newNode);
         size++;
 
-        // Bubble up - recente nodes stijgen naar top
-        bubbleUp(path);
+        // Bubble up - recent nodes rise to top
+        bubbleUpArray();
         return true;
     }
 
     /**
-     * Geeft de insertion counter terug - nuttig voor debugging en statistieken.
+     * Add node to path with inline capacity check.
+     */
+    private void addToPath(PriorityTop<E> node) {
+        if (pathSize >= pathArray.length) {
+            @SuppressWarnings("unchecked")
+            PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
+            System.arraycopy(pathArray, 0, newArray, 0, pathSize);
+            pathArray = newArray;
+        }
+        pathArray[pathSize++] = node;
+    }
+
+    /**
+     * Bubble up using array-based path (optimized version).
+     */
+    private void bubbleUpArray() {
+        for (int i = pathSize - 1; i > 0; i--) {
+            PriorityTop<E> node = pathArray[i];
+            PriorityTop<E> parent = pathArray[i - 1];
+
+            if (node.getPriority() <= parent.getPriority()) break;
+
+            // Rotate node up
+            PriorityTop<E> grandparent = (i > 1) ? pathArray[i - 2] : null;
+            boolean isLeftChild = parent.getLeft() == node;
+
+            PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
+
+            // Update grandparent or root
+            if (grandparent == null) {
+                root = newSubtreeRoot;
+            } else if (grandparent.getLeft() == parent) {
+                grandparent.setLeft(newSubtreeRoot);
+            } else {
+                grandparent.setRight(newSubtreeRoot);
+            }
+
+            pathArray[i - 1] = newSubtreeRoot;
+        }
+    }
+
+    /**
+     * Returns the insertion counter - useful for debugging and statistics.
+     * The counter represents how many elements have been successfully inserted.
+     *
+     * @return the current value of the insertion counter
      */
     public long getInsertionCounter() {
         return insertionCounter;
     }
 
     /**
-     * Reset de insertion counter - gebruik met voorzichtigheid!
-     * Dit kan de heap property verstoren voor bestaande nodes.
+     * Resets the insertion counter - use with caution!
+     * This can violate the heap property for existing nodes if new elements
+     * are inserted after reset, as they will get lower priorities than old elements.
+     * Only use this if you're clearing the tree or know what you're doing.
      */
     public void resetCounter() {
         this.insertionCounter = 0;

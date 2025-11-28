@@ -3,43 +3,99 @@ package oplossing;
 import opgave.PriorityNode;
 import opgave.PrioritySearchTree;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * A Treap (Tree + Heap) data structure that combines properties of binary search trees and heaps.
+ * <p>
+ * A treap maintains two properties simultaneously:
+ * 1. BST property: For any node, all values in the left subtree are smaller, all values in the right subtree are larger
+ * 2. Max-heap property: For any node, its priority is greater than or equal to the priorities of its children
+ * <p>
+ * Structure:
+ * - Each node contains a value (for BST ordering) and a priority (for heap ordering)
+ * - Values are inserted following BST rules
+ * - After insertion, rotations restore the heap property
+ * - Rotations preserve BST property while fixing heap violations
+ * <p>
+ * Priority assignment:
+ * - By default, priorities are assigned randomly (using a seeded Random)
+ * - Random priorities provide expected O(log n) height
+ * - Subclasses can override priority assignment (e.g., time-based, frequency-based)
+ * <p>
+ * Performance characteristics:
+ * - Expected O(log n) for search, insert, and delete with random priorities
+ * - Worst case O(n) if priorities are pathologically ordered
+ * - Better average-case performance than unbalanced BSTs
+ * - Simpler implementation than self-balancing trees (AVL, Red-Black)
+ * <p>
+ * Implementation details:
+ * - Uses deterministic seeded Random (seed=205) for reproducible test behavior
+ * - Iterative implementations minimize stack usage
+ * - Reusable array for path tracking (zero GC pressure)
+ * - Bit shift for array doubling
+ * - Supports rotation operations for heap property maintenance
+ * <p>
+ * Optimizations:
+ * - Reusable path array eliminates ArrayList allocations
+ * - Direct array access is faster than ArrayList.get()
+ * - Inline capacity checks with bit shifts
+ * - Early termination in bubble-up when heap property satisfied
+ * <p>
+ * Use cases:
+ * - When you need BST operations with good average performance
+ * - When randomized algorithms are acceptable
+ * - As a base class for priority-based variants (frequency treaps, time-based treaps)
+ * - When simpler implementation is preferred over guaranteed balance
+ *
+ * @param <E> the type of elements maintained by this treap must be Comparable
+ * @author Remco Marien
+ */
 public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     protected int size;
     protected PriorityTop<E> root;
     protected Random random;
 
+    /**
+     * Reusable array for path tracking - prevents ArrayList allocations.
+     */
+    private PriorityTop<E>[] pathArray;
+    private int pathSize;
+
+    /**
+     * Creates a new Treap with a fixed seed for deterministic behavior in tests.
+     * Seed 205 produces expected test structure: 50 as root with buildInitialTreeImage1.
+     */
     public Treap() {
-        this.size = 0;
-        // Use a fixed seed for deterministic behavior in tests
-        // Seed 205 produces expected test structure: 50 as root with buildInitialTreeImage1
-        this.random = new Random(205);
+        this(205);
     }
 
     /**
-     * Constructor with custom seed for testing purposes.
+     * Creates a new Treap with a custom seed for testing purposes.
+     *
+     * @param seed the seed for the random number generator
      */
+    @SuppressWarnings("unchecked")
     public Treap(long seed) {
         this.size = 0;
         this.random = new Random(seed);
+        this.pathArray = (PriorityTop<E>[]) new PriorityTop[16];
+        this.pathSize = 0;
     }
 
     /**
-     * Estimates the height of the tree for pre-allocating collections.
-     * Uses log2(n) as baseline for balanced trees with bounds to handle edge cases.
-     *
-     * @return estimated height, minimum 8, maximum 64
+     * Add node to path with inline capacity check.
      */
-    protected int estimateHeight() {
-        if (size == 0) return 8;
-        // For balanced tree: log2(n) ≈ log(n)/log(2)
-        // Add 50% margin for partially unbalanced trees
-        int estimated = (int) (Math.log(size + 1) / Math.log(2) * 1.5);
-        return Math.min(Math.max(estimated, 8), 64);
+    @SuppressWarnings("unchecked")
+    private void addToPath(PriorityTop<E> node) {
+        if (pathSize >= pathArray.length) {
+            PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
+            System.arraycopy(pathArray, 0, newArray, 0, pathSize);
+            pathArray = newArray;
+        }
+        pathArray[pathSize++] = node;
     }
 
     @Override
@@ -76,8 +132,8 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             return true;
         }
 
-        // Track the path for bubble-up with adaptive capacity
-        List<PriorityTop<E>> path = new ArrayList<>(estimateHeight());
+        // Reset path tracking
+        pathSize = 0;
         PriorityTop<E> current = root;
         boolean insertLeft = false;
 
@@ -86,39 +142,39 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             int cmp = o.compareTo(current.getValue());
             if (cmp == 0) return false; // Already exists
 
-            path.add(current);
+            addToPath(current);
             insertLeft = cmp < 0;
             current = insertLeft ? current.getLeft() : current.getRight();
         }
 
         // Insert new node
         PriorityTop<E> newNode = new PriorityTop<>(o, priority);
-        PriorityTop<E> parent = path.getLast();
+        PriorityTop<E> parent = pathArray[pathSize - 1];
         if (insertLeft) {
             parent.setLeft(newNode);
         } else {
             parent.setRight(newNode);
         }
-        path.add(newNode);
+        addToPath(newNode);
         size++;
 
         // Bubble up to maintain heap property
-        bubbleUp(path);
+        bubbleUpArray();
         return true;
     }
 
     /**
-     * Bubble up the last node in a path if its priority exceeds its parent's.
+     * Bubble up using array-based path (optimized version).
      */
-    protected void bubbleUp(List<PriorityTop<E>> path) {
-        for (int i = path.size() - 1; i > 0; i--) {
-            PriorityTop<E> node = path.get(i);
-            PriorityTop<E> parent = path.get(i - 1);
+    private void bubbleUpArray() {
+        for (int i = pathSize - 1; i > 0; i--) {
+            PriorityTop<E> node = pathArray[i];
+            PriorityTop<E> parent = pathArray[i - 1];
 
             if (node.getPriority() <= parent.getPriority()) break;
 
             // Rotate node up
-            PriorityTop<E> grandparent = (i > 1) ? path.get(i - 2) : null;
+            PriorityTop<E> grandparent = (i > 1) ? pathArray[i - 2] : null;
             boolean isLeftChild = parent.getLeft() == node;
 
             PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
@@ -132,7 +188,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
                 grandparent.setRight(newSubtreeRoot);
             }
 
-            path.set(i - 1, newSubtreeRoot);
+            pathArray[i - 1] = newSubtreeRoot;
         }
     }
 

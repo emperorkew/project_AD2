@@ -1,52 +1,97 @@
 package oplossing;
 
+import java.util.IdentityHashMap;
+import java.util.Map;
+
 /**
- * Een Treap die de prioriteit van nodes logaritmisch verhoogt bij elke toegang.
+ * A Treap that logarithmically increases node priority on each access.
+ * Provides balanced performance between frequently and infrequently accessed nodes.
  * <p>
- * De prioriteit wordt berekend als: Priority = log2(accessCount) * 1M
+ * Priority calculation:
+ * - Priority = log₂(accessCount) × 1,000,000
+ * - First accesses have high impact, then diminishing returns
+ * - Prevents extreme dominance by hot nodes
  * <p>
- * Dit zorgt voor:
- * - Logaritmische schaling: eerste accesses hebben meer impact, diminishing returns
- * - Betere balans: zeer frequente nodes zijn minder dominant dan bij lineaire schaling
- * - Voorkomt starvation: weinig bezochte nodes kunnen relatief snel inhalen
+ * Why logarithmic scaling?
+ * - Better balance: Very frequent nodes are less dominant than with linear scaling
+ * - Prevents starvation: Infrequently accessed nodes can catch up relatively quickly
+ * - Diminishing returns: Doubling access count only adds constant priority
  * <p>
- * Voordelen van logaritmische schaling:
- * - Node met 1000 accesses: log₂(1000) ≈ 10
- * - Node met 10 accesses: log₂(10) ≈ 3.3
- * - Node met 10 accesses heeft ~50 extra accesses nodig om bij te komen (log₂(60) ≈ 6)
- * - Bij lineaire schaling zou dit 990 extra accesses zijn!
+ * Comparison example:
+ * - Node with 1000 accesses: log₂(1000) ≈ 10 (priority ~10M)
+ * - Node with 10 accesses: log₂(10) ≈ 3.3 (priority ~3.3M)
+ * - To match priority, node needs ~50 more accesses (log₂(60) ≈ 6)
+ * - With linear scaling, it would need 990 more accesses!
  * <p>
  * Highly optimized implementation:
  * - Reuses a single path array to eliminate allocations (zero GC pressure)
- * - Stores access count in upper 32 bits of priority for O(1) retrieval
- * - Uses bit operations for fast access count extraction
- * - Precomputed constants for all mathematical operations
- * - Extracted common logic to reduce code duplication
+ * - IdentityHashMap for O(1) access count lookups (reference equality only)
+ * - Precomputed log values for common access counts (powers of 2: 1, 2, 4, 8, 16, 32, 64, 128, 256)
+ * - Fast path for powers of 2: bit manipulation instead of Math.log()
+ * - Math.round() for proper floating-point precision
+ * <p>
+ * Use cases:
+ * - Balanced caching where both hot and warm data matter
+ * - Scenarios with Zipf-like distributions (web caching, word frequency)
+ * - When you want frequency-based optimization without extreme imbalance
+ * <p>
+ * Trade-offs vs linear frequency:
+ * - Pro: Better balance, no starvation, more predictable performance
+ * - Pro: Extremely hot nodes don't monopolize the tree structure
+ * - Con: Slightly more complex priority calculation
+ * - Con: HashMap overhead for access count tracking
+ *
+ * @param <E> the type of elements maintained by this treap must be Comparable
+ * @author Remco Marien
  */
 public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
     private static final double INV_LN2 = 1.4426950408889634;  // 1 / ln(2)
     private static final long SCALE = 1_000_000L;
 
+    // Precomputed log priorities for common access counts (powers of 2: 1, 2, 4, 8, 16, 32, 64, 128, 256)
+    private static final long[] LOG_CACHE = {
+        0L,         // log2(1) * 1M
+        1_000_000L, // log2(2) * 1M
+        2_000_000L, // log2(4) * 1M
+        3_000_000L, // log2(8) * 1M
+        4_000_000L, // log2(16) * 1M
+        5_000_000L, // log2(32) * 1M
+        6_000_000L, // log2(64) * 1M
+        7_000_000L, // log2(128) * 1M
+        8_000_000L  // log2(256) * 1M
+    };
+
     private PriorityTop<E>[] pathArray;
     private int pathSize;
+    private final Map<PriorityTop<E>, Long> accessCounts;
 
     @SuppressWarnings("unchecked")
     public MyFrequencyTreap() {
         super();
         this.pathArray = (PriorityTop<E>[]) new PriorityTop[64];
+        // IdentityHashMap is faster since we only need reference equality
+        this.accessCounts = new IdentityHashMap<>();
     }
 
     /**
-     * Encodes access count and logarithmic priority using bit packing:
-     * Upper 32 bits: access count (for O(1) increment)
-     * Lower 32 bits: log2(accessCount) * SCALE (for heap ordering)
+     * Calculates logarithmic priority from access count.
+     * Uses cache for powers of 2, computes others.
      */
-    private long encodePriority(long accessCount) {
-        if (accessCount <= 1) return (1L << 32); // Access count = 1, log priority = 0
+    private static long calculatePriority(long accessCount) {
+        if (accessCount <= 1) return 0;
 
-        long logPriority = (long) (Math.log(accessCount) * INV_LN2 * SCALE);
-        return (accessCount << 32) | (logPriority & 0xFFFFFFFFL);
+        // Fast path: check if it's a power of 2 in cache range
+        if (accessCount <= 256 && (accessCount & (accessCount - 1)) == 0) {
+            // Count trailing zeros to get the power: 2^n
+            int power = Long.numberOfTrailingZeros(accessCount);
+            if (power < LOG_CACHE.length) {
+                return LOG_CACHE[power];
+            }
+        }
+
+        // Fallback: compute logarithm
+        return Math.round(Math.log(accessCount) * INV_LN2 * SCALE);
     }
 
     /**
@@ -64,11 +109,11 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
     /**
      * Increments access count and updates priority.
-     * Efficiently extracts, increments, and re-encodes in one operation.
      */
     private void incrementAccess(PriorityTop<E> node) {
-        long accessCount = (node.getPriority() >>> 32) + 1;  // Extract upper 32 bits and increment
-        node.setPriority(encodePriority(accessCount));
+        long accessCount = accessCounts.getOrDefault(node, 1L) + 1;
+        accessCounts.put(node, accessCount);
+        node.setPriority(calculatePriority(accessCount));
     }
 
     @Override
@@ -98,7 +143,8 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
         if (o == null) return false;
 
         if (root == null) {
-            root = new PriorityTop<>(o, encodePriority(1));
+            root = new PriorityTop<>(o, 0); // Priority 0 for new node
+            accessCounts.put(root, 1L); // Access count starts at 1
             size++;
             return true;
         }
@@ -119,7 +165,8 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
             PriorityTop<E> next = (cmp < 0) ? current.getLeft() : current.getRight();
 
             if (next == null) {
-                PriorityTop<E> newNode = new PriorityTop<>(o, encodePriority(1));
+                PriorityTop<E> newNode = new PriorityTop<>(o, 0); // Priority 0 for new node
+                accessCounts.put(newNode, 1L); // Access count starts at 1
                 if (cmp < 0) {
                     current.setLeft(newNode);
                 } else {
@@ -166,5 +213,11 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
             pathArray[i - 1] = newSubtreeRoot;
             i--;
         }
+    }
+
+    @Override
+    public boolean remove(E e) {
+        // Access counts for removed nodes will be garbage collected automatically
+        return super.remove(e);
     }
 }

@@ -1,14 +1,32 @@
 package oplossing;
 
 /**
- * Een Treap die de prioriteit van nodes lineair verhoogt bij elke toegang.
- * Frequenter bezochte nodes stijgen naar de top van de boom.
- *
+ * A Treap that linearly increases node priority on each access.
+ * More frequently accessed nodes rise to the top of the tree.
+ * <p>
+ * Priority strategy:
+ * - Priority increases linearly with each access (priority++)
+ * - Frequently accessed nodes get proportionally higher priority
+ * - Ideal for scenarios where access frequency strongly correlates with importance
+ * <p>
  * Highly optimized implementation:
- * - Reuses a single path array to eliminate allocations
+ * - Reuses a single path array to eliminate allocations (zero GC pressure)
  * - Inlined capacity checks for better performance
  * - Minimized method calls and redundant operations
- * - Extracted common logic to reduce code duplication
+ * - Bit shift for array doubling (x << 1 instead of x * 2)
+ * <p>
+ * Use cases:
+ * - Caching with strong locality (80/20 rule)
+ * - Hot-spot optimization where few elements dominate access patterns
+ * - Scenarios where recent AND frequent access both matter
+ * <p>
+ * Trade-offs vs logarithmic frequency:
+ * - Pro: Simple linear scaling, very hot nodes become extremely accessible
+ * - Con: Can cause extreme imbalance with skewed access patterns
+ * - Con: Less-accessed nodes may become unreachable in pathological cases
+ *
+ * @param <E> the type of elements maintained by this treap must be Comparable
+ * @author Remco Marien
  */
 public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
