@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test suite voor MyTreap - de tijdgestuurde treap waar "recent = belangrijk".
- *
+ * <p>
  * Deze tests verifiëren:
  * - Basis treap functionaliteit (add, search, remove)
  * - Time-based priority systeem (insertion counter)
@@ -278,7 +278,7 @@ public class MyTreapTest {
             treap.add(i * 100);
         }
 
-        // Most recent log should be root
+        // The most recent log should be root
         assertEquals(1000, treap.root().getValue());
         assertEquals(9, treap.root().getPriority());
 
