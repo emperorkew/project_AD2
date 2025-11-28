@@ -78,14 +78,14 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
         8_000_000L  // log2(256) * 1M
     };
 
-    private PriorityTop<E>[] pathArray;
-    private int pathSize;
     private final Map<PriorityTop<E>, Long> accessCounts;
 
     @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public MyFrequencyTreap() {
         super();
+        // Override parent's initial capacity for frequency treaps (expect deeper paths)
         this.pathArray = (PriorityTop<E>[]) new PriorityTop[64];
+        this.pathSize = 0;
         // IdentityHashMap is faster since we only need reference equality
         this.accessCounts = new IdentityHashMap<>();
     }
@@ -108,19 +108,6 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
         // Fallback: compute logarithm
         return Math.round(Math.log(accessCount) * INV_LN2 * SCALE);
-    }
-
-    /**
-     * Ensures sufficient capacity and adds a node to the path.
-     */
-    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
-    private void addToPath(PriorityTop<E> node) {
-        if (pathSize >= pathArray.length) {
-            PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
-            System.arraycopy(pathArray, 0, newArray, 0, pathSize);
-            pathArray = newArray;
-        }
-        pathArray[pathSize++] = node;
     }
 
     /**
@@ -195,39 +182,6 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
             }
 
             current = next;
-        }
-    }
-
-    /**
-     * Bubbles up using the reusable path array.
-     */
-    private void bubbleUpArray() {
-        int i = pathSize - 1;
-
-        while (i > 0) {
-            PriorityTop<E> node = pathArray[i];
-            PriorityTop<E> parent = pathArray[i - 1];
-
-            if (node.getPriority() <= parent.getPriority()) return;
-
-            // Perform rotation
-            boolean isLeftChild = parent.getLeft() == node;
-            PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
-
-            // Update parent reference
-            if (i == 1) {
-                root = newSubtreeRoot;
-            } else {
-                PriorityTop<E> grandparent = pathArray[i - 2];
-                if (grandparent.getLeft() == parent) {
-                    grandparent.setLeft(newSubtreeRoot);
-                } else {
-                    grandparent.setRight(newSubtreeRoot);
-                }
-            }
-
-            pathArray[i - 1] = newSubtreeRoot;
-            i--;
         }
     }
 

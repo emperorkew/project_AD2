@@ -48,7 +48,7 @@ import java.util.Random;
  * - Supports rotation operations for heap property maintenance
  * <p>
  * Optimizations:
- * - a Reusable path array eliminates ArrayList allocations
+ * - Reusable path array eliminates ArrayList allocations
  * - Direct array access is faster than ArrayList.get()
  * - Inline capacity checks with bit shifts
  * - Early termination in bubble-up when heap property satisfied
@@ -70,9 +70,10 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     /**
      * Reusable array for path tracking - prevents ArrayList allocations.
+     * Protected to allow subclasses to reuse the path tracking infrastructure.
      */
-    private PriorityTop<E>[] pathArray;
-    private int pathSize;
+    protected PriorityTop<E>[] pathArray;
+    protected int pathSize;
 
     /**
      * Creates a new Treap with a fixed seed for deterministic behavior in tests.
@@ -97,9 +98,10 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     /**
      * Add a node to a path with an inline capacity check.
+     * Protected to allow subclasses to reuse this method.
      */
     @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
-    private void addToPath(PriorityTop<E> node) {
+    protected void addToPath(PriorityTop<E> node) {
         if (pathSize >= pathArray.length) {
             PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
             System.arraycopy(pathArray, 0, newArray, 0, pathSize);
@@ -130,14 +132,24 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
         return false;
     }
 
+    /**
+     * Generates a priority for a new element.
+     * Subclasses can override this to implement custom priority strategies.
+     * The default implementation uses random priorities.
+     *
+     * @param element the element being inserted (unused in default implementation, but available for subclasses)
+     * @return the priority value for the new node
+     */
+    protected long generatePriority(E element) {
+        return random.nextLong();
+    }
+
     @Override
     public boolean add(E o) {
         if (o == null) return false;
 
-        long priority = random.nextLong();
-
         if (root == null) {
-            root = new PriorityTop<>(o, priority);
+            root = new PriorityTop<>(o, generatePriority(o));
             size++;
             return true;
         }
@@ -157,8 +169,8 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
             current = insertLeft ? current.getLeft() : current.getRight();
         }
 
-        // Insert new node
-        PriorityTop<E> newNode = new PriorityTop<>(o, priority);
+        // Element is new - generate priority and insert node
+        PriorityTop<E> newNode = new PriorityTop<>(o, generatePriority(o));
         PriorityTop<E> parent = pathArray[pathSize - 1];
         if (insertLeft) {
             parent.setLeft(newNode);
@@ -175,8 +187,9 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
 
     /**
      * Bubble up using an array-based path.
+     * Protected to allow subclasses to reuse this method.
      */
-    private void bubbleUpArray() {
+    protected void bubbleUpArray() {
         for (int i = pathSize - 1; i > 0; i--) {
             PriorityTop<E> node = pathArray[i];
             PriorityTop<E> parent = pathArray[i - 1];

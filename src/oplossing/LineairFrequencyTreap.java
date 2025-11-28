@@ -44,28 +44,12 @@ package oplossing;
  */
 public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
-    private PriorityTop<E>[] pathArray;
-    private int pathSize;
-
     @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public LineairFrequencyTreap() {
         super();
+        // Override parent's initial capacity for frequency treaps (expect deeper paths)
         this.pathArray = (PriorityTop<E>[]) new PriorityTop[64];
-    }
-
-    /**
-     * Ensures sufficient capacity and adds a node to the path.
-     * Inlined to avoid method call overhead in a hot path.
-     */
-    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
-    private void addToPath(PriorityTop<E> node) {
-        if (pathSize >= pathArray.length) {
-            // Grow array - double size
-            PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
-            System.arraycopy(pathArray, 0, newArray, 0, pathSize);
-            pathArray = newArray;
-        }
-        pathArray[pathSize++] = node;
+        this.pathSize = 0;
     }
 
     @Override
@@ -81,7 +65,7 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
             if (cmp == 0) {
                 current.setPriority(current.getPriority() + 1);
-                bubbleUp();
+                bubbleUpArray();
                 return true;
             }
             current = (cmp < 0) ? current.getLeft() : current.getRight();
@@ -109,7 +93,7 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
             if (cmp == 0) {
                 current.setPriority(current.getPriority() + 1);
-                bubbleUp();
+                bubbleUpArray();
                 return false;
             }
 
@@ -125,47 +109,11 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
                 }
                 addToPath(newNode);
                 size++;
-                bubbleUp();
+                bubbleUpArray();
                 return true;
             }
 
             current = next;
-        }
-    }
-
-    /**
-     * Bubbles up the last node in the path to maintain heap property.
-     * Optimized for minimal overhead and cache-friendly access patterns.
-     */
-    private void bubbleUp() {
-        int i = pathSize - 1;
-
-        while (i > 0) {
-            PriorityTop<E> node = pathArray[i];
-            PriorityTop<E> parent = pathArray[i - 1];
-
-            // Early exit if heap property satisfied
-            if (node.getPriority() <= parent.getPriority()) return;
-
-            // Perform rotation
-            boolean isLeftChild = parent.getLeft() == node;
-            PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
-
-            // Update parent reference
-            if (i == 1) {
-                root = newSubtreeRoot;
-            } else {
-                PriorityTop<E> grandparent = pathArray[i - 2];
-                if (grandparent.getLeft() == parent) {
-                    grandparent.setLeft(newSubtreeRoot);
-                } else {
-                    grandparent.setRight(newSubtreeRoot);
-                }
-            }
-
-            // Update path for the next iteration
-            pathArray[i - 1] = newSubtreeRoot;
-            i--;
         }
     }
 }

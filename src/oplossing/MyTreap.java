@@ -69,104 +69,21 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
      */
     private long insertionCounter;
 
-    /**
-     * Reusable array for path tracking - prevents ArrayList allocations.
-     */
-    private PriorityTop<E>[] pathArray;
-    private int pathSize;
-
-    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public MyTreap() {
         super();
         this.insertionCounter = 0;
-        this.pathArray = (PriorityTop<E>[]) new PriorityTop[16];
-        this.pathSize = 0;
     }
 
+    /**
+     * Generates time-based priority using insertion counter.
+     * Each new element gets a higher priority than the previous one.
+     *
+     * @param element the element being inserted (unused, priority is based on insertion order only)
+     * @return the priority value (current insertionCounter, then incremented)
+     */
     @Override
-    public boolean add(E o) {
-        if (o == null) return false;
-
-        if (root == null) {
-            // Generate priority: higher counter = more recent = higher priority
-            root = new PriorityTop<>(o, insertionCounter++);
-            size++;
-            return true;
-        }
-
-        // Reset path tracking
-        pathSize = 0;
-
-        // Find the insertion point
-        PriorityTop<E> current = root;
-        boolean insertLeft = false;
-
-        while (current != null) {
-            int cmp = o.compareTo(current.getValue());
-            if (cmp == 0) return false; // Element already exists - don't increment counter
-
-            addToPath(current);
-            insertLeft = cmp < 0;
-            current = insertLeft ? current.getLeft() : current.getRight();
-        }
-
-        // Element is new - now increment counter and generate priority
-        // Insert new node with time-based priority
-        PriorityTop<E> newNode = new PriorityTop<>(o, insertionCounter++);
-        PriorityTop<E> parent = pathArray[pathSize - 1];
-        if (insertLeft) {
-            parent.setLeft(newNode);
-        } else {
-            parent.setRight(newNode);
-        }
-        addToPath(newNode);
-        size++;
-
-        // Bubble up - recent nodes rise to top
-        bubbleUpArray();
-        return true;
-    }
-
-    /**
-     * Add a node to a path with an inline capacity check.
-     */
-    private void addToPath(PriorityTop<E> node) {
-        if (pathSize >= pathArray.length) {
-            @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
-            PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
-            System.arraycopy(pathArray, 0, newArray, 0, pathSize);
-            pathArray = newArray;
-        }
-        pathArray[pathSize++] = node;
-    }
-
-    /**
-     * Bubble up using an array-based path (optimized version).
-     */
-    private void bubbleUpArray() {
-        for (int i = pathSize - 1; i > 0; i--) {
-            PriorityTop<E> node = pathArray[i];
-            PriorityTop<E> parent = pathArray[i - 1];
-
-            if (node.getPriority() <= parent.getPriority()) break;
-
-            // Rotate node up
-            PriorityTop<E> grandparent = (i > 1) ? pathArray[i - 2] : null;
-            boolean isLeftChild = parent.getLeft() == node;
-
-            PriorityTop<E> newSubtreeRoot = isLeftChild ? parent.rotateRight() : parent.rotateLeft();
-
-            // Update grandparent or root
-            if (grandparent == null) {
-                root = newSubtreeRoot;
-            } else if (grandparent.getLeft() == parent) {
-                grandparent.setLeft(newSubtreeRoot);
-            } else {
-                grandparent.setRight(newSubtreeRoot);
-            }
-
-            pathArray[i - 1] = newSubtreeRoot;
-        }
+    protected long generatePriority(E element) {
+        return insertionCounter++;
     }
 
     /**
