@@ -11,6 +11,18 @@ package oplossing;
  * - Frequently accessed nodes get proportionally higher priority
  * - Ideal for scenarios where access frequency strongly correlates with importance
  * <p>
+ * Performance characteristics:
+ * Time complexity:
+ * - O(log n) expected for search and add with rebalancing (bubble-up after priority increase)
+ * - O(log n) expected for remove (inherited from Treap)
+ * - Worst case O(n) if priorities become pathologically ordered
+ * - O(n) for values() traversal
+ * Space complexity:
+ * - O(n) for the tree structure
+ * - O(log n) expected auxiliary space for search and add (path array for bubble-up)
+ * - O(1) auxiliary space for remove (inherited from Treap)
+ * - O(n) auxiliary space for values()
+ * <p>
  * Highly optimized implementation:
  * - Reuses a single path array to eliminate allocations (zero GC pressure)
  * - Inlined capacity checks for better performance

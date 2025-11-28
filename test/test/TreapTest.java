@@ -207,31 +207,24 @@ public class TreapTest {
         assertDoesNotThrow(root::getPriority);
     }
 
-    /**
-     * Test cases based on the Treap operation diagrams from geeksforgeeks.org:
-     * https://www.geeksforgeeks.org/dsa/treap-a-randomized-binary-search-tree/
-     *
-     * Figure 1: Insert(80) with left rotate
-     * Figure 2: Delete(50) with multiple rotations
-     *
-     * Notation in comments: (key, priority) where key is green and priority is blue
+    /*
+      Test cases based on the Treap operation diagrams from geeksforgeeks.org:
+      https://www.geeksforgeeks.org/dsa/treap-a-randomized-binary-search-tree/
      */
-
-
         /**
-         * Test the initial tree structure from figure 1:
-         *
+         * Test the initial tree structure:
+         * <p>
          *           (50, 15)
          *          /        \
          *     (30, 5)      (70, 10)
          *     /    \
          * (20, 2)  (40, 4)
-         *
+         * <p>
          * BST property: 20 < 30 < 40 < 50 < 70
          * Max-Heap property: 15 > 5 > 2, 15 > 5 > 4, 15 > 10
          */
         @Test
-        @DisplayName("Figure 1: Verify initial tree structure before insert")
+        @DisplayName("Verify initial tree structure before insert")
         void verifyInitialTreeStructureImage1() {
             Treap<Integer> treap = buildInitialTreeImage1();
 
@@ -250,26 +243,26 @@ public class TreapTest {
         }
 
         /**
-         * Test Insert(80) scenario from figure 1:
-         *
+         * Test Insert(80) scenario:
+         * <p>
          * After BST insert of 80 (with priority 12) as right child of 70:
          *           (50, 15)
          *          /        \
          *     (30, 5)      (70, 10)
          *     /    \            \
          * (20, 2)  (40, 4)     (80, 12)   <-- priority 12 > 10, heap violation!
-         *
+         * <p>
          * After left rotate on 70:
          *           (50, 15)
          *          /        \
          *     (30, 5)      (80, 12)
          *     /    \       /
          * (20, 2)  (40, 4) (70, 10)
-         *
+         * <p>
          * Now heap property is restored: 15 > 12 > 10
          */
         @Test
-        @DisplayName("Figure 1: Insert(80) with left rotate for heap property")
+        @DisplayName("Insert(80) with left rotate for heap property")
         void testInsert80WithLeftRotate() {
             Treap<Integer> treap = buildInitialTreeImage1();
 
@@ -287,8 +280,8 @@ public class TreapTest {
         }
 
         /**
-         * Test the final structure after Insert(80) from figure 1:
-         *
+         * Test the final structure after Insert(80):
+         * <p>
          *           (50, 15)
          *          /        \
          *     (30, 5)      (80, 12)
@@ -296,7 +289,7 @@ public class TreapTest {
          * (20, 2)  (40, 4) (70, 10)
          */
         @Test
-        @DisplayName("Figure 1: Verify final structure after insert(80)")
+        @DisplayName("Verify final structure after insert(80)")
         void verifyFinalStructureAfterInsert80() {
             Treap<Integer> treap = buildTreeAfterInsert80();
 
@@ -314,20 +307,20 @@ public class TreapTest {
         }
 
         /**
-         * Test Delete(50) scenario from figure 2:
-         *
+         * Test Delete(50) scenario:
+         * <p>
          * Starting tree:
          *           (50, 15)
          *          /        \
          *     (30, 5)      (70, 10)
          *     /    \
          * (20, 2)  (40, 4)
-         *
+         * <p>
          * Step 1: Set priority of 50 to -INF
          * Step 2: Left rotate (since right child 70 has higher priority than left child 30)
          * Step 3: Right rotate(s) to push 50 down
          * Step 4: Delete 50 when it becomes a leaf
-         *
+         * <p>
          * Final tree:
          *           (70, 10)
          *          /
@@ -360,8 +353,8 @@ public class TreapTest {
         }
 
         /**
-         * Test the final structure after Delete(50) from figure 2:
-         *
+         * Test the final structure after Delete(50):
+         * <p>
          *       (70, 10)
          *       /
          *   (30, 5)
@@ -369,7 +362,7 @@ public class TreapTest {
          * (20, 2)  (40, 4)
          */
         @Test
-        @DisplayName("Figure 2: Verify final structure after delete(50)")
+        @DisplayName("Verify final structure after delete(50)")
         void verifyFinalStructureAfterDelete50() {
             Treap<Integer> treap = buildTreeAfterDelete50();
 
@@ -388,10 +381,9 @@ public class TreapTest {
 
         /**
          * Test that deleting the root works correctly when root has two children.
-         * This is the scenario from figure 2.
          */
         @Test
-        @DisplayName("Figure 2: Delete root with two children")
+        @DisplayName("Delete root with two children")
         void testDeleteRootWithTwoChildren() {
             Treap<Integer> treap = buildInitialTreeImage1();
 
@@ -421,12 +413,12 @@ public class TreapTest {
         void testFullSequenceInsertThenDelete() {
             Treap<Integer> treap = buildInitialTreeImage1();
 
-            // Insert 80 (figure 1)
+            // Insert 80
             assertTrue(treap.add(80));
             assertEquals(6, treap.size());
             assertTrue(verifyMaxHeapProperty(treap.root()));
 
-            // Delete 50 (figure 2 scenario, but now with 80 included)
+            // Delete 50
             assertTrue(treap.remove(50));
             assertEquals(5, treap.size());
             assertFalse(treap.search(50));
@@ -469,13 +461,13 @@ public class TreapTest {
         // ==================== HELPER METHODS ====================
 
         /**
-         * Builds the initial tree from figure 1:
+         * Builds the initial tree:
          *           (50, 15)
          *          /        \
          *     (30, 5)      (70, 10)
          *     /    \
          * (20, 2)  (40, 4)
-         *
+         * <p>
          * Note: The exact structure depends on the random priorities.
          * This method adds elements in an order that will likely
          * produce a similar structure.
@@ -492,7 +484,7 @@ public class TreapTest {
         }
 
         /**
-         * Builds the tree after insert(80) from figure 1.
+         * Builds the tree after insert(80).
          */
         private Treap<Integer> buildTreeAfterInsert80() {
             Treap<Integer> treap = buildInitialTreeImage1();
@@ -501,7 +493,7 @@ public class TreapTest {
         }
 
         /**
-         * Builds the final structure after delete(50) from figure 2.
+         * Builds the final structure after delete(50).
          */
         private Treap<Integer> buildTreeAfterDelete50() {
             Treap<Integer> treap = new Treap<>();

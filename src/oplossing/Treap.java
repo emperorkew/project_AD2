@@ -25,10 +25,20 @@ import java.util.Random;
  * - Subclasses can override priority assignment (e.g., time-based, frequency-based)
  * <p>
  * Performance characteristics:
+ * Time complexity:
  * - Expected O(log n) for search, insert, and delete with random priorities
- * - Worst case O(n) if priorities are pathologically ordered
+ * - Worst case O(n) if priorities are pathologically ordered (e.g., sorted priorities)
+ * - O(n) for values() traversal
+ * Space complexity:
+ * - O(n) for the tree structure
+ * - O(1) auxiliary space for search (iterative, no path tracking)
+ * - O(log n) expected auxiliary space for insert (path array for bubble-up)
+ * - O(1) auxiliary space for remove (iterative)
+ * - O(n) auxiliary space for values() - O(n) result list + O(log n) expected for traversal stack
+ * <p>
+ * Compared to other structures:
  * - Better average-case performance than unbalanced BSTs
- * - Simpler implementation than self-balancing trees (AVL, Red-Black)
+ * - Simpler implementation than guaranteed-balanced trees (AVL, Red-Black)
  * <p>
  * Implementation details:
  * - Uses deterministic seeded Random (seed=205) for reproducible test behavior
@@ -164,7 +174,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     }
 
     /**
-     * Bubble up using array-based path (optimized version).
+     * Bubble up using array-based path.
      */
     private void bubbleUpArray() {
         for (int i = pathSize - 1; i > 0; i--) {

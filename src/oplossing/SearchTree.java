@@ -21,11 +21,12 @@ import java.util.List;
  * Time complexity:
  * - Average case O(log n) for search, add, and remove operations
  * - Worst case O(n) for degenerate (linear) trees
+ * - O(n) for values() traversal
  * <p>
  * Space complexity:
  * - O(n) for the tree structure
- * - O(1) auxiliary space for most operations (iterative approach)
- * - O(h) auxiliary space for values() traversal (where h is tree height)
+ * - O(1) auxiliary space for search, add, and remove (iterative approach)
+ * - O(n) auxiliary space for values() - O(n) for result list + O(h) for stack where h is tree height
  *
  * @param <E> the type of elements maintained by this tree must be Comparable
  * @author Remco Marien
@@ -68,8 +69,6 @@ public class SearchTree<E extends Comparable<E>> implements opgave.SearchTree<E>
      */
     private int estimateHeight() {
         if (size == 0) return 8;
-        // For balanced tree: log2(n) ≈ log(n)/log(2)
-        // Add 50% margin for partially unbalanced trees
         int estimated = (int) (Math.log(size + 1) / Math.log(2) * 1.5);
         return Math.min(Math.max(estimated, 8), 64);
     }

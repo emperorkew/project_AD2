@@ -14,6 +14,20 @@ import java.util.Map;
  * - First accesses have high impact, then diminishing returns
  * - Prevents extreme dominance by hot nodes
  * <p>
+ * Performance characteristics:
+ * Time complexity:
+ * - O(log n) expected for search and add with rebalancing (bubble-up after priority increase)
+ * - O(log n) expected for remove (searches twice: once for cleanup, once for removal)
+ * - Worst case O(n) if priorities become pathologically ordered
+ * - O(n) for values() traversal
+ * - O(1) for priority calculation (cached for powers of 2, otherwise fast log computation)
+ * Space complexity:
+ * - O(n) for the tree structure
+ * - O(n) for accessCounts IdentityHashMap (stores access count for each node)
+ * - O(log n) expected auxiliary space for search and add (path array for bubble-up)
+ * - O(1) auxiliary space for remove (only local variables)
+ * - O(n) auxiliary space for values()
+ * <p>
  * Why logarithmic scaling?
  * - Better balance: Very frequent nodes are less dominant than with linear scaling
  * - Prevents starvation: Infrequently accessed nodes can catch up relatively quickly

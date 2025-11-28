@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A Semi-Splay Tree implementation that extends SearchTreeImplemented.
+ * A Semi-Splay Tree implementation that extends SearchTree.
  * <p>
  * Semi-splay trees are a variant of splay trees that perform partial splaying operations
  * to improve tree balance while reducing the overhead of full splay operations.
@@ -87,11 +87,12 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTree<E> {
         // safety check
         if (o == null || root == null) return false;
 
-        // Track the path for bubble-up after priority increase (capacity 32 covers ~4B nodes) --> pre-allocated memory to save stack space
+        // Track the path for semi-splay operation
+        // Pre-allocate capacity 32 (log₂(4B) ≈ 32 for balanced trees)
         List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
 
-        // Iterative in-order traversal to save O(h) stack space
+        // Iterative traversal with explicit path tracking (O(h) space)
         while (current != null) {
             path.add(current);
             int cmp = o.compareTo(current.getValue());
@@ -120,11 +121,12 @@ public class SemiSplayTree<E extends Comparable<E>> extends SearchTree<E> {
             return true;
         }
 
-        // Track the path for bubble-up after priority increase (capacity 32 covers ~4B nodes) --> pre-allocated memory to save stack space
+        // Track the path for semi-splay operation
+        // Pre-allocate capacity 32 (log₂(4B) ≈ 32 for balanced trees)
         List<Top<E>> path = new ArrayList<>(32);
         Top<E> current = root;
 
-        // Iterative in-order traversal to save O(h) stack space
+        // Iterative traversal with explicit path tracking (O(h) space)
         while (true) {
             path.add(current);
             int cmp = o.compareTo(current.getValue());

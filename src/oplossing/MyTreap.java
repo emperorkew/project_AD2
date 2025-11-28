@@ -17,6 +17,19 @@ package oplossing;
  * - No random priorities: fully deterministic based on insertion order
  * - Duplicate insertions do NOT increment counter (element already exists)
  * <p>
+ * Performance characteristics:
+ * Time complexity:
+ * - O(log n) expected for search (no rebalancing on search)
+ * - O(log n) expected for add with bubble-up (path tracking and rotations)
+ * - O(log n) expected for remove (inherited from Treap)
+ * - O(n) for values() traversal
+ * Space complexity:
+ * - O(n) for the tree structure
+ * - O(1) auxiliary space for search (inherited from Treap)
+ * - O(log n) expected auxiliary space for add (path array for bubble-up)
+ * - O(1) auxiliary space for remove (inherited from Treap)
+ * - O(n) auxiliary space for values()
+ * <p>
  * Performance optimizations:
  * - Reusable array for path tracking (zero GC pressure)
  * - Inline capacity checks with bit shifts (x << 1 instead of x * 2)
@@ -65,19 +78,6 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
     @SuppressWarnings("unchecked")
     public MyTreap() {
         super();
-        this.insertionCounter = 0;
-        this.pathArray = (PriorityTop<E>[]) new PriorityTop[16];
-        this.pathSize = 0;
-    }
-
-    /**
-     * Constructor with custom seed for deterministic tests.
-     * Note: This constructor is preserved for testing but the seed is not used
-     * since time-based priority is deterministic by design.
-     */
-    @SuppressWarnings("unchecked")
-    public MyTreap(long seed) {
-        super(seed);
         this.insertionCounter = 0;
         this.pathArray = (PriorityTop<E>[]) new PriorityTop[16];
         this.pathSize = 0;
