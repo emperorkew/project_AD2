@@ -75,7 +75,7 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
     private PriorityTop<E>[] pathArray;
     private int pathSize;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public MyTreap() {
         super();
         this.insertionCounter = 0;
@@ -132,7 +132,7 @@ public class MyTreap<E extends Comparable<E>> extends Treap<E> {
      */
     private void addToPath(PriorityTop<E> node) {
         if (pathSize >= pathArray.length) {
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
             PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];
             System.arraycopy(pathArray, 0, newArray, 0, pathSize);
             pathArray = newArray;

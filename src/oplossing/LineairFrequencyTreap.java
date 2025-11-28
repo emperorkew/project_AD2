@@ -47,7 +47,7 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
     private PriorityTop<E>[] pathArray;
     private int pathSize;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public LineairFrequencyTreap() {
         super();
         this.pathArray = (PriorityTop<E>[]) new PriorityTop[64];
@@ -55,9 +55,9 @@ public class LineairFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
 
     /**
      * Ensures sufficient capacity and adds a node to the path.
-     * Inlined to avoid method call overhead in hot path.
+     * Inlined to avoid method call overhead in a hot path.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     private void addToPath(PriorityTop<E> node) {
         if (pathSize >= pathArray.length) {
             // Grow array - double size

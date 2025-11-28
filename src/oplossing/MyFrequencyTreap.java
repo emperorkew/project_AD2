@@ -82,7 +82,7 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
     private int pathSize;
     private final Map<PriorityTop<E>, Long> accessCounts;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public MyFrequencyTreap() {
         super();
         this.pathArray = (PriorityTop<E>[]) new PriorityTop[64];
@@ -113,7 +113,7 @@ public class MyFrequencyTreap<E extends Comparable<E>> extends Treap<E> {
     /**
      * Ensures sufficient capacity and adds a node to the path.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     private void addToPath(PriorityTop<E> node) {
         if (pathSize >= pathArray.length) {
             PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];

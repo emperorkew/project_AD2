@@ -87,7 +87,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
      *
      * @param seed the seed for the random number generator
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     public Treap(long seed) {
         this.size = 0;
         this.random = new Random(seed);
@@ -98,7 +98,7 @@ public class Treap<E extends Comparable<E>> implements PrioritySearchTree<E> {
     /**
      * Add a node to a path with an inline capacity check.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // Generic array creation requires an unchecked cast from PriorityTop[] to PriorityTop<E>[]
     private void addToPath(PriorityTop<E> node) {
         if (pathSize >= pathArray.length) {
             PriorityTop<E>[] newArray = (PriorityTop<E>[]) new PriorityTop[pathArray.length << 1];

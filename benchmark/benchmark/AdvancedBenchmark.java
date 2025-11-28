@@ -8,20 +8,20 @@ import java.util.*;
 
 /**
  * Advanced benchmark suite for tree implementations.
- *
+ * <p>
  * Measures:
  * - Execution time (median, min, max over multiple runs)
  * - Memory usage (heap allocation)
  * - Tree depth/height (for worst-case analysis)
  * - Operation throughput (ops/second)
- *
+ * <p>
  * Scenarios:
  * 1. Uniform random access (Sampler)
  * 2. Skewed access patterns (ZipfSampler) - 80/20 rule, caching scenarios
  * 3. Sequential access - time-series, log data
  * 4. Recent-biased access - sliding window scenarios
  * 5. Mixed workload - realistic combination of operations
- *
+ * <p>
  * Best practices:
  * - Data generation outside timing measurements
  * - Multiple runs to reduce variance
@@ -48,15 +48,15 @@ public class AdvancedBenchmark {
 
     @SuppressWarnings("unchecked")
     private static final TreeFactory<Integer>[] TREE_FACTORIES = new TreeFactory[]{
-        () -> new Treap<>(),
-        () -> new MyTreap<>(),
-        () -> new LineairFrequencyTreap<>(),
-        () -> new MyFrequencyTreap<>(),
-        () -> new SemiSplayTree<>(),
-        () -> new SearchTree<>()
+            Treap::new,
+            MyTreap::new,
+            LineairFrequencyTreap::new,
+            MyFrequencyTreap::new,
+            SemiSplayTree::new,
+            SearchTree::new
     };
 
-    public static void main(String[] args) {
+    static void main() {
         printHeader();
 
         // JVM warmup
@@ -100,7 +100,7 @@ public class AdvancedBenchmark {
             }
         }
         System.gc();
-        try { Thread.sleep(200); } catch (InterruptedException e) {}
+        try { Thread.sleep(200); } catch (InterruptedException _) {}
     }
 
     /**
@@ -248,7 +248,7 @@ public class AdvancedBenchmark {
             long totalMem = 0;
             for (int run = 0; run < 3; run++) {
                 System.gc();
-                try { Thread.sleep(100); } catch (InterruptedException e) {}
+                try { Thread.sleep(100); } catch (InterruptedException _) {}
 
                 Runtime runtime = Runtime.getRuntime();
                 long beforeMem = runtime.totalMemory() - runtime.freeMemory();
@@ -263,7 +263,7 @@ public class AdvancedBenchmark {
                 int size = tree.size();
 
                 System.gc();
-                try { Thread.sleep(100); } catch (InterruptedException e) {}
+                try { Thread.sleep(100); } catch (InterruptedException _) {}
 
                 long afterMem = runtime.totalMemory() - runtime.freeMemory();
                 totalMem += Math.max(0, afterMem - beforeMem);
@@ -275,7 +275,7 @@ public class AdvancedBenchmark {
     }
 
     /**
-     * Tree depth analysis with balance factor
+     * Tree depth analysis with a balance factor
      */
     private static void benchmarkTreeDepth() {
         printScenarioHeader("TREE DEPTH ANALYSIS",
