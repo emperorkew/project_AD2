@@ -1,5 +1,6 @@
 package test;
 
+
 import org.junit.jupiter.api.Nested;
 
 /**
@@ -24,7 +25,12 @@ public class Test {
     }
 
     @Nested
-    class LineairFreqnuencyTreapTests extends LineairFrequencyTreapTest {
+    class AdvancedTreapTests extends test.AdvancedTreapTests{
+        // All tests from AdvancedTreapTests
+    }
+
+    @Nested
+    class LineairFrequencyTreapTests extends LineairFrequencyTreapTest {
         // All tests from LineairFrequencyTreapTest
     }
 
@@ -37,4 +43,6 @@ public class Test {
     class MyTreapTests extends MyTreapTest{
         // All tests from MyTreapTest
     }
+
+
 }
